@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Store WebAssembly Modules in Browser Cache - wasm</title>
+    <meta name="description" content="WebAssembly (WASM) modules can significantly improve web application performance, but fetching and compiling them on every page load introduces latency. This article explains how to efficiently store and retrieve WASM modules in the browser using the Cac">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-to-store-web-assembly-modules-in-browser-cache">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Store WebAssembly Modules in Browser Cache - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-to-store-web-assembly-modules-in-browser-cache" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (WASM) modules can significantly improve web application performance, but fetching and compiling them on every page load introduces latency. This article explains how to efficiently store and retrieve WASM modules in the browser using the Cac" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-to-store-webassembly-modules-in-browser-cache">How to Store
+WebAssembly Modules in Browser Cache</h1>
+<p>WebAssembly (WASM) modules can significantly improve web application
+performance, but fetching and compiling them on every page load
+introduces latency. This article explains how to efficiently store and
+retrieve WASM modules in the browser using the Cache API and IndexedDB,
+reducing network overhead and startup times for your web
+applications.</p>
+<h2 id="the-modern-standard-the-cache-api">The Modern Standard: The
+Cache API</h2>
+<p>The most efficient and modern way to cache WASM modules is by using
+the browser's Cache API. Instead of storing the compiled machine code,
+you cache the HTTP response of the <code>.wasm</code> file.</p>
+<p>This approach is highly efficient because it integrates perfectly
+with <code>WebAssembly.instantiateStreaming()</code>. When you retrieve
+the response from the cache, you can feed it directly into the streaming
+compiler. The browser compiles the module in the background while it is
+being loaded from the local disk cache, resulting in near-instantaneous
+startup times.</p>
+<p>Here is how to implement caching with the Cache API:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">loadWasm</span>(url) {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> cacheName <span class="op">=</span> <span class="st">&#39;wasm-cache-v1&#39;</span><span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> cache <span class="op">=</span> <span class="cf">await</span> caches<span class="op">.</span><span class="fu">open</span>(cacheName)<span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Try to find the cached response</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> response <span class="op">=</span> <span class="cf">await</span> cache<span class="op">.</span><span class="fu">match</span>(url)<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="op">!</span>response) {</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Fetch from network if not cached and add to cache</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">await</span> cache<span class="op">.</span><span class="fu">add</span>(url)<span class="op">;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    response <span class="op">=</span> <span class="cf">await</span> cache<span class="op">.</span><span class="fu">match</span>(url)<span class="op">;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Instantiate directly from the cached response</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> { instance } <span class="op">=</span> <span class="cf">await</span> WebAssembly<span class="op">.</span><span class="fu">instantiateStreaming</span>(response)<span class="op">;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> instance<span class="op">;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h2 id="the-alternative-indexeddb">The Alternative: IndexedDB</h2>
+<p>Historically, developers attempted to store compiled
+<code>WebAssembly.Module</code> objects directly in IndexedDB to avoid
+the recompilation step entirely. However, storing compiled modules in
+IndexedDB has been deprecated or disabled in most modern browsers due to
+security vulnerabilities and serialization issues.</p>
+<p>If you must use IndexedDB, the best practice is to store the raw
+binary data as an <code>ArrayBuffer</code>. When retrieving it, you must
+compile it using <code>WebAssembly.instantiate()</code>.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Storing WASM ArrayBuffer in IndexedDB</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">storeWasmInDB</span>(db<span class="op">,</span> key<span class="op">,</span> arrayBuffer) {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> transaction <span class="op">=</span> db<span class="op">.</span><span class="fu">transaction</span>([<span class="st">&#39;wasmStore&#39;</span>]<span class="op">,</span> <span class="st">&#39;readwrite&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> store <span class="op">=</span> transaction<span class="op">.</span><span class="fu">objectStore</span>(<span class="st">&#39;wasmStore&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  store<span class="op">.</span><span class="fu">put</span>(arrayBuffer<span class="op">,</span> key)<span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">// Retrieving and instantiating from IndexedDB</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">loadWasmFromDB</span>(db<span class="op">,</span> key) {</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="kw">new</span> <span class="bu">Promise</span>((resolve<span class="op">,</span> reject) <span class="kw">=&gt;</span> {</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> transaction <span class="op">=</span> db<span class="op">.</span><span class="fu">transaction</span>([<span class="st">&#39;wasmStore&#39;</span>]<span class="op">,</span> <span class="st">&#39;readonly&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> store <span class="op">=</span> transaction<span class="op">.</span><span class="fu">objectStore</span>(<span class="st">&#39;wasmStore&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> request <span class="op">=</span> store<span class="op">.</span><span class="fu">get</span>(key)<span class="op">;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    request<span class="op">.</span><span class="at">onsuccess</span> <span class="op">=</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> arrayBuffer <span class="op">=</span> request<span class="op">.</span><span class="at">result</span><span class="op">;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (arrayBuffer) {</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> { instance } <span class="op">=</span> <span class="cf">await</span> WebAssembly<span class="op">.</span><span class="fu">instantiate</span>(arrayBuffer)<span class="op">;</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="fu">resolve</span>(instance)<span class="op">;</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>      } <span class="cf">else</span> {</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        <span class="fu">reject</span>(<span class="st">&#39;WASM module not found in IndexedDB&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    }<span class="op">;</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    request<span class="op">.</span><span class="at">onerror</span> <span class="op">=</span> () <span class="kw">=&gt;</span> <span class="fu">reject</span>(<span class="st">&#39;Database error&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>While IndexedDB works for raw binary storage, it requires full
+compilation of the <code>ArrayBuffer</code> upon retrieval, which is
+less efficient than the streaming compilation offered by the Cache
+API.</p>
+<h2 id="summary-of-best-practices">Summary of Best Practices</h2>
+<p>For optimal performance and cross-browser compatibility:</p>
+<ul>
+<li><strong>Use the Cache API</strong> as your primary caching
+mechanism.</li>
+<li><strong>Use <code>WebAssembly.instantiateStreaming</code></strong>
+with the cached response to compile and instantiate the module
+simultaneously.</li>
+<li><strong>Avoid storing compiled modules</strong> in IndexedDB, as
+browser security policies restrict this behavior. Use raw
+<code>ArrayBuffer</code> storage in IndexedDB only as a fallback.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

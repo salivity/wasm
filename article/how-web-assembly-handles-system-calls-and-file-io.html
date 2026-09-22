@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How WebAssembly Handles System Calls and File IO - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) operates in a highly secured, sandboxed environment that restricts direct access to a computer's hardware, file system, and network. To perform system calls like file input/output (I/O) or network requests, Wasm modules must rely on ho">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-web-assembly-handles-system-calls-and-file-io">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How WebAssembly Handles System Calls and File IO - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-web-assembly-handles-system-calls-and-file-io" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) operates in a highly secured, sandboxed environment that restricts direct access to a computer's hardware, file system, and network. To perform system calls like file input/output (I/O) or network requests, Wasm modules must rely on ho" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-webassembly-handles-system-calls-and-file-io">How
+WebAssembly Handles System Calls and File IO</h1>
+<p>WebAssembly (Wasm) operates in a highly secured, sandboxed
+environment that restricts direct access to a computer's hardware, file
+system, and network. To perform system calls like file input/output
+(I/O) or network requests, Wasm modules must rely on host-provided
+interfaces. This article explains how WebAssembly interacts with the
+outside world through browser-based APIs and the WebAssembly System
+Interface (WASI) to execute system-level operations safely.</p>
+<h3 id="the-sandbox-and-the-need-for-a-host">The Sandbox and the Need
+for a Host</h3>
+<p>By design, WebAssembly has no built-in capabilities to interact with
+the operating system. It cannot open a file, read a network socket, or
+print to a console on its own. This isolation ensures security and
+portability across different platforms. To perform any of these actions,
+a Wasm module must import functions from its host environment—whether
+that host is a web browser or a standalone runtime like Wasmtime or
+Wasmer.</p>
+<h3 id="system-calls-in-the-browser-via-javascript">System Calls in the
+Browser via JavaScript</h3>
+<p>In a web browser, the host environment is JavaScript. WebAssembly
+handles system-like operations by delegating them to JavaScript
+APIs:</p>
+<ol type="1">
+<li><strong>Importing Functions:</strong> During the compilation and
+instantiation of a Wasm module, JavaScript passes a set of functions (an
+import object) to the module. These functions can wrap standard Web APIs
+like <code>fetch()</code> for network requests or
+<code>FileReader</code> for file operations.</li>
+<li><strong>Calling the Host:</strong> When the Wasm program needs to
+fetch data, it calls the imported JavaScript function, passing pointers
+to its linear memory where the arguments or targets are stored.</li>
+<li><strong>Returning Data:</strong> JavaScript executes the
+asynchronous web request, writes the response directly back into the
+WebAssembly module's shared memory, and notifies the Wasm code that the
+operation is complete.</li>
+</ol>
+<p>Through this "glue code," Wasm leverages the entire suite of browser
+capabilities without having direct access to the underlying OS.</p>
+<h3 id="system-calls-outside-the-browser-wasi">System Calls Outside the
+Browser: WASI</h3>
+<p>For non-browser environments, using custom JavaScript wrappers is
+impractical. To solve this, the WebAssembly community developed the
+WebAssembly System Interface (WASI). WASI standardizes a set of
+POSIX-like system calls that Wasm modules can use across different
+runtimes.</p>
+<p>Instead of writing custom host functions, developers compile their
+code (written in languages like Rust, C, or Go) against the WASI
+standard library. When compiled, the standard file I/O and network
+operations are translated into WASI system calls, such as:</p>
+<ul>
+<li><code>path_open</code> to open a file.</li>
+<li><code>fd_read</code> and <code>fd_write</code> to read from and
+write to file descriptors.</li>
+<li><code>sock_recv</code> and <code>sock_send</code> for network socket
+operations.</li>
+</ul>
+<p>The standalone WebAssembly runtime acts as the host, mapping these
+standardized WASI calls directly to the host operating system's native
+system calls.</p>
+<h3 id="capability-based-security">Capability-Based Security</h3>
+<p>Even with WASI, WebAssembly maintains strict security through a
+capability-based security model. A Wasm module cannot simply request
+access to <code>/etc/passwd</code> or arbitrary IP addresses.</p>
+<p>When launching a WASI module, the user or host application must
+explicitly grant permissions. For example, the runtime can pre-open
+specific directories and pass those file descriptors to the Wasm module.
+The module is then physically incapable of accessing any files outside
+of those pre-approved paths. For networking, runtimes similarly restrict
+which ports and addresses a module is allowed to bind to or query,
+ensuring a high level of security.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load and Instantiate WebAssembly Modules in JavaScript - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) allows developers to run high-performance code in the browser alongside JavaScript. To use a WebAssembly module, you must first fetch its binary file, compile it, and instantiate it so JavaScript can access its exported functions. This">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/load-and-instantiate-web-assembly-modules-in-java-script">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Load and Instantiate WebAssembly Modules in JavaScript - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/load-and-instantiate-web-assembly-modules-in-java-script" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) allows developers to run high-performance code in the browser alongside JavaScript. To use a WebAssembly module, you must first fetch its binary file, compile it, and instantiate it so JavaScript can access its exported functions. This" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="load-and-instantiate-webassembly-modules-in-javascript">Load and
+Instantiate WebAssembly Modules in JavaScript</h1>
+<p>WebAssembly (Wasm) allows developers to run high-performance code in
+the browser alongside JavaScript. To use a WebAssembly module, you must
+first fetch its binary file, compile it, and instantiate it so
+JavaScript can access its exported functions. This article provides a
+clear, step-by-step guide on how to load and instantiate WebAssembly
+modules using modern JavaScript APIs, focusing on both the efficient
+streaming method and the fallback buffer-based method.</p>
+<h2 id="the-modern-approach-streaming-instantiation">The Modern
+Approach: Streaming Instantiation</h2>
+<p>The most efficient way to load and instantiate a WebAssembly module
+is by using the <code>WebAssembly.instantiateStreaming()</code> API.
+This method compiles and instantiates the module on the fly as the
+<code>.wasm</code> file is being downloaded over the network, which
+significantly reduces startup time.</p>
+<h3 id="syntax-and-example">Syntax and Example</h3>
+<p>To use streaming instantiation, you pass a fetched response promise
+directly to <code>WebAssembly.instantiateStreaming()</code>, along with
+an optional import object.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Define imports (functions, memory, etc.) that the Wasm module needs from JavaScript</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> importObject <span class="op">=</span> {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">env</span><span class="op">:</span> {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">log</span><span class="op">:</span> (arg) <span class="kw">=&gt;</span> <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(arg)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">// Fetch, compile, and instantiate the Wasm file in a single streaming operation</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>WebAssembly<span class="op">.</span><span class="fu">instantiateStreaming</span>(<span class="fu">fetch</span>(<span class="st">&#39;module.wasm&#39;</span>)<span class="op">,</span> importObject)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="op">.</span><span class="fu">then</span>(obj <span class="kw">=&gt;</span> {</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Access the exported functions from the Wasm instance</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> result <span class="op">=</span> obj<span class="op">.</span><span class="at">instance</span><span class="op">.</span><span class="at">exports</span><span class="op">.</span><span class="fu">add</span>(<span class="dv">5</span><span class="op">,</span> <span class="dv">10</span>)<span class="op">;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(result)<span class="op">;</span> <span class="co">// Outputs the result of the Wasm function</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="op">.</span><span class="fu">catch</span>(error <span class="kw">=&gt;</span> {</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(<span class="st">&quot;Failed to load and instantiate Wasm:&quot;</span><span class="op">,</span> error)<span class="op">;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span></code></pre></div>
+<p>Using <code>async/await</code>, the same process looks like this:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">loadWasm</span>() {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">try</span> {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> importObject <span class="op">=</span> {}<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> obj <span class="op">=</span> <span class="cf">await</span> WebAssembly<span class="op">.</span><span class="fu">instantiateStreaming</span>(<span class="fu">fetch</span>(<span class="st">&#39;module.wasm&#39;</span>)<span class="op">,</span> importObject)<span class="op">;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Call an exported function</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    obj<span class="op">.</span><span class="at">instance</span><span class="op">.</span><span class="at">exports</span><span class="op">.</span><span class="fu">myFunction</span>()<span class="op">;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">catch</span> (error) {</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(<span class="st">&quot;Error loading WebAssembly:&quot;</span><span class="op">,</span> error)<span class="op">;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">loadWasm</span>()<span class="op">;</span></span></code></pre></div>
+<p><em>Note: For <code>instantiateStreaming()</code> to work, the server
+serving the <code>.wasm</code> file must return the correct MIME type:
+<code>application/wasm</code>.</em></p>
+<hr />
+<h2 id="the-fallback-approach-arraybuffer-instantiation">The Fallback
+Approach: ArrayBuffer Instantiation</h2>
+<p>If the server does not support the <code>application/wasm</code> MIME
+type, or if you are running the code in an environment where
+<code>instantiateStreaming</code> is not available, you must fallback to
+loading the file as an <code>ArrayBuffer</code> and then compiling
+it.</p>
+<p>This process involves downloading the entire file first, converting
+it into a typed array of bytes, and then instantiating those bytes.</p>
+<h3 id="syntax-and-example-1">Syntax and Example</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">loadWasmFallback</span>() {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">try</span> {</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> response <span class="op">=</span> <span class="cf">await</span> <span class="fu">fetch</span>(<span class="st">&#39;module.wasm&#39;</span>)<span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> bytes <span class="op">=</span> <span class="cf">await</span> response<span class="op">.</span><span class="fu">arrayBuffer</span>()<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Instantiate using the byte array</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> obj <span class="op">=</span> <span class="cf">await</span> WebAssembly<span class="op">.</span><span class="fu">instantiate</span>(bytes)<span class="op">;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Access the exported functions</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    obj<span class="op">.</span><span class="at">instance</span><span class="op">.</span><span class="at">exports</span><span class="op">.</span><span class="fu">myFunction</span>()<span class="op">;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">catch</span> (error) {</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(<span class="st">&quot;Fallback WebAssembly instantiation failed:&quot;</span><span class="op">,</span> error)<span class="op">;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="fu">loadWasmFallback</span>()<span class="op">;</span></span></code></pre></div>
+<hr />
+<h2 id="understanding-the-components">Understanding the Components</h2>
+<p>Whether you use streaming or fallback compilation, the instantiation
+process involves the same key components:</p>
+<ol type="1">
+<li><strong>The <code>importObject</code> (Optional):</strong> This is a
+JavaScript object containing values, functions, or memory spaces that
+you want to pass into your WebAssembly module. Wasm modules can call
+these JavaScript functions during execution.</li>
+<li><strong>The Result Object:</strong> The resolved promise returns a
+JavaScript object containing two properties:
+<ul>
+<li><code>module</code>: A <code>WebAssembly.Module</code> object that
+can be cached or shared with web workers.</li>
+<li><code>instance</code>: A <code>WebAssembly.Instance</code> object
+that contains all the exported WebAssembly functions inside
+<code>instance.exports</code>.</li>
+</ul></li>
+</ol></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

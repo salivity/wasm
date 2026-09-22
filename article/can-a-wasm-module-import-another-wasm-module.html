@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Can a Wasm Module Import Another Wasm Module? - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) modules cannot natively import other Wasm modules directly in standard browser environments without the aid of JavaScript or a bundler. While the WebAssembly specification defines an import section, the actual resolution and linking of">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/can-a-wasm-module-import-another-wasm-module">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Can a Wasm Module Import Another Wasm Module? - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/can-a-wasm-module-import-another-wasm-module" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) modules cannot natively import other Wasm modules directly in standard browser environments without the aid of JavaScript or a bundler. While the WebAssembly specification defines an import section, the actual resolution and linking of" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="can-a-wasm-module-import-another-wasm-module">Can a Wasm Module
+Import Another Wasm Module?</h1>
+<p>WebAssembly (Wasm) modules cannot natively import other Wasm modules
+directly in standard browser environments without the aid of JavaScript
+or a bundler. While the WebAssembly specification defines an import
+section, the actual resolution and linking of these imports are
+delegated to the host environment. This article explains how Wasm
+imports currently function, how JavaScript acts as the intermediary
+link, and the future specifications that will enable direct imports.</p>
+<h2 id="the-role-of-the-host-environment">The Role of the Host
+Environment</h2>
+<p>WebAssembly is designed to be host-independent. A Wasm binary
+declares what it needs to import (such as functions, memory, tables, or
+globals) and what it exports, but it does not specify <em>how</em> to
+locate or retrieve those imports.</p>
+<p>In a web browser, the host environment is JavaScript. When you
+instantiate a WebAssembly module using the
+<code>WebAssembly.instantiate()</code> or
+<code>WebAssembly.instantiateStreaming()</code> APIs, you must
+explicitly provide an imports object. Because of this architecture, a
+Wasm module cannot directly fetch and link to another <code>.wasm</code>
+file on its own.</p>
+<h2 id="the-current-solution-javascript-glue-code">The Current Solution:
+JavaScript Glue Code</h2>
+<p>To connect two WebAssembly modules today, you must use JavaScript as
+a bridge to pass the exports of one module into the imports of
+another.</p>
+<p>The workflow typically follows these steps:</p>
+<ol type="1">
+<li>Compile or fetch the first WebAssembly module (Module A).</li>
+<li>Instantiate Module A to access its exported functions.</li>
+<li>Fetch and compile the second WebAssembly module (Module B).</li>
+<li>Pass Module A's exported functions inside the imports object when
+instantiating Module B.</li>
+</ol>
+<p>This manual linking process ensures that Module B can call functions
+defined in Module A, but the orchestration is entirely handled by
+JavaScript.</p>
+<h2 id="tooling-and-bundlers">Tooling and Bundlers</h2>
+<p>Many developers experience what feels like direct Wasm-to-Wasm
+imports when using modern web bundlers like Webpack, Vite, or
+Rollup.</p>
+<p>If you write code in a language like Rust or C++ and import one
+module into another, the compiler and your build tools generate the
+necessary JavaScript glue code behind the scenes. During the build
+process, the bundler packages the modules and automatically wires the
+exports of one Wasm binary to the imports of another, simulating a
+direct connection.</p>
+<h2 id="the-future-es-module-integration">The Future: ES Module
+Integration</h2>
+<p>To solve this limitation and allow truly direct imports, the
+WebAssembly community is developing the <strong>WebAssembly ES Module
+Integration</strong> proposal.</p>
+<p>Once fully standardized and implemented by browser vendors, this
+feature will allow WebAssembly modules to be integrated directly into
+the JavaScript module graph. You will be able to import a WebAssembly
+module directly inside a JavaScript file, or even import a Wasm module
+from another Wasm module using standard import syntax:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { exportedFunction } <span class="im">from</span> <span class="st">&#39;./module.wasm&#39;</span><span class="op">;</span></span></code></pre></div>
+<p>Under this specification, the browser's engine will handle the
+fetching, compilation, and linking of Wasm modules automatically,
+eliminating the need for manual JavaScript instantiation glue code.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

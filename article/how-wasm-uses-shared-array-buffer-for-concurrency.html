@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Wasm Uses SharedArrayBuffer for Concurrency - wasm</title>
+    <meta name="description" content="This article explores how WebAssembly (Wasm) achieves high-performance concurrent operations by leveraging SharedArrayBuffer. It explains how this shared memory model allows multiple Web Workers to access the same memory space simultaneously, examines th">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-wasm-uses-shared-array-buffer-for-concurrency">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Wasm Uses SharedArrayBuffer for Concurrency - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-wasm-uses-shared-array-buffer-for-concurrency" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores how WebAssembly (Wasm) achieves high-performance concurrent operations by leveraging SharedArrayBuffer. It explains how this shared memory model allows multiple Web Workers to access the same memory space simultaneously, examines th" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-wasm-uses-sharedarraybuffer-for-concurrency">How Wasm Uses
+SharedArrayBuffer for Concurrency</h1>
+<p>This article explores how WebAssembly (Wasm) achieves
+high-performance concurrent operations by leveraging
+<code>SharedArrayBuffer</code>. It explains how this shared memory model
+allows multiple Web Workers to access the same memory space
+simultaneously, examines the role of atomic instructions in preventing
+data corruption, and outlines how these technologies work together to
+enable true multi-threading in web applications.</p>
+<p>To understand how WebAssembly utilizes
+<code>SharedArrayBuffer</code>, it is essential to look at the memory
+model of Wasm. By default, a WebAssembly instance has a linear memory
+represented by a standard, single-threaded <code>ArrayBuffer</code>.
+This memory is isolated and can only be accessed by that specific
+instance. However, to achieve concurrency, WebAssembly modules can be
+configured to use a <code>SharedArrayBuffer</code> as their linear
+memory instead.</p>
+<p>When configured with <code>SharedArrayBuffer</code>, the linear
+memory acts as a shared global heap. Multiple Web Workers—which function
+as individual execution threads in the browser environment—can be
+instantiated with access to this exact same buffer. Because all workers
+point to the same physical memory space, they can read and write data
+instantly without the performance overhead of copying data or passing
+large messages back and forth via <code>postMessage()</code>.</p>
+<p>While sharing memory enables massive performance gains, it introduces
+the risk of race conditions, where multiple threads attempt to modify
+the same memory location simultaneously. WebAssembly solves this by
+utilizing atomic operations (Atomics). Compiled from multi-threaded
+languages like C, C++, or Rust, Wasm atomic instructions ensure that
+read-modify-write operations are completed uninterrupted, preventing
+data corruption.</p>
+<p>Furthermore, WebAssembly utilizes browser-level futexes (fast
+userspace mutexes) through specific atomic operators:
+<code>memory.atomic.wait</code> and <code>memory.atomic.notify</code>.
+These instructions allow a Web Worker thread to suspend its execution
+efficiently while waiting for a specific memory location to change, and
+allow another thread to wake it up once the operation is complete. This
+synchronization mechanism ensures thread safety and coordinates complex
+parallel tasks.</p>
+<p>By combining <code>SharedArrayBuffer</code> with Web Workers and
+atomic instructions, WebAssembly brings native-level multi-threading to
+the browser. This architecture is vital for CPU-intensive tasks such as
+3D rendering, physics engines, video processing, and cryptography,
+enabling desktop-class application performance directly within web
+browsers.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

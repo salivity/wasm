@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wasm and Web Workers for Background Processing - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) combined with Web Workers provides a powerful solution for executing heavy computational tasks in the browser without degrading the user experience. By offloading intensive Wasm binaries to background worker threads, applications can m">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/wasm-and-web-workers-for-background-processing">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Wasm and Web Workers for Background Processing - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/wasm-and-web-workers-for-background-processing" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) combined with Web Workers provides a powerful solution for executing heavy computational tasks in the browser without degrading the user experience. By offloading intensive Wasm binaries to background worker threads, applications can m" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="wasm-and-web-workers-for-background-processing">Wasm and Web
+Workers for Background Processing</h1>
+<p>WebAssembly (Wasm) combined with Web Workers provides a powerful
+solution for executing heavy computational tasks in the browser without
+degrading the user experience. By offloading intensive Wasm binaries to
+background worker threads, applications can maintain a responsive user
+interface while performing complex data processing in the background.
+This article explores the mechanics of this integration, detailing how
+to load Wasm within a worker, pass data between threads, and utilize
+shared memory for optimal performance.</p>
+<h2 id="why-integrate-webassembly-with-web-workers">Why Integrate
+WebAssembly with Web Workers?</h2>
+<p>JavaScript is single-threaded, meaning long-running computations
+block the browser's main thread and cause UI freezes or stuttering.
+While WebAssembly offers near-native execution speed, running a heavy
+Wasm module on the main thread will still cause lag if the execution
+takes more than a few milliseconds.</p>
+<p>Web Workers solve this by running scripts in isolated background
+threads. Integrating WebAssembly with Web Workers allows you to run
+high-performance compiled code (such as C++, Rust, or Go) completely
+separated from the UI thread, ensuring smooth animations and
+interactions.</p>
+<h2 id="how-to-load-webassembly-inside-a-web-worker">How to Load
+WebAssembly inside a Web Worker</h2>
+<p>To run Wasm in the background, you must instantiate the Wasm module
+directly inside the Web Worker script. The recommended approach is to
+use the stream-based instantiation API inside the worker's message event
+listener.</p>
+<h3 id="1-the-worker-script-workerjs">1. The Worker Script
+(worker.js)</h3>
+<p>The worker listens for an initialization message, fetches the Wasm
+binary, compiles it, and prepares it for execution.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// worker.js</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> wasmExports <span class="op">=</span> <span class="kw">null</span><span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>self<span class="op">.</span><span class="at">onmessage</span> <span class="op">=</span> <span class="kw">async</span> (<span class="bu">event</span>) <span class="kw">=&gt;</span> {</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> { type<span class="op">,</span> payload } <span class="op">=</span> <span class="bu">event</span><span class="op">.</span><span class="at">data</span><span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (type <span class="op">===</span> <span class="st">&#39;INIT&#39;</span>) {</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Fetch and compile Wasm streamingly</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> response <span class="op">=</span> <span class="cf">await</span> <span class="fu">fetch</span>(<span class="st">&#39;module.wasm&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> { instance } <span class="op">=</span> <span class="cf">await</span> WebAssembly<span class="op">.</span><span class="fu">instantiateStreaming</span>(response)<span class="op">;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    wasmExports <span class="op">=</span> instance<span class="op">.</span><span class="at">exports</span><span class="op">;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    self<span class="op">.</span><span class="fu">postMessage</span>({ <span class="dt">type</span><span class="op">:</span> <span class="st">&#39;READY&#39;</span> })<span class="op">;</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (type <span class="op">===</span> <span class="st">&#39;PROCESS&#39;</span>) {</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Call the Wasm function with payload data</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> result <span class="op">=</span> wasmExports<span class="op">.</span><span class="fu">heavy_calculation</span>(payload)<span class="op">;</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    self<span class="op">.</span><span class="fu">postMessage</span>({ <span class="dt">type</span><span class="op">:</span> <span class="st">&#39;RESULT&#39;</span><span class="op">,</span> <span class="dt">payload</span><span class="op">:</span> result })<span class="op">;</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
+<h3 id="2-the-main-thread-mainjs">2. The Main Thread (main.js)</h3>
+<p>The main thread spawns the worker, triggers the Wasm initialization,
+and handles the processed results.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// main.js</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> worker <span class="op">=</span> <span class="kw">new</span> <span class="bu">Worker</span>(<span class="st">&#39;worker.js&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">// Initialize the Wasm module in the worker</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>worker<span class="op">.</span><span class="fu">postMessage</span>({ <span class="dt">type</span><span class="op">:</span> <span class="st">&#39;INIT&#39;</span> })<span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>worker<span class="op">.</span><span class="at">onmessage</span> <span class="op">=</span> (<span class="bu">event</span>) <span class="kw">=&gt;</span> {</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> { type<span class="op">,</span> payload } <span class="op">=</span> <span class="bu">event</span><span class="op">.</span><span class="at">data</span><span class="op">;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (type <span class="op">===</span> <span class="st">&#39;READY&#39;</span>) {</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;Wasm is loaded and ready in the worker thread.&#39;</span>)<span class="op">;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Send data to process</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    worker<span class="op">.</span><span class="fu">postMessage</span>({ <span class="dt">type</span><span class="op">:</span> <span class="st">&#39;PROCESS&#39;</span><span class="op">,</span> <span class="dt">payload</span><span class="op">:</span> <span class="dv">42</span> })<span class="op">;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> <span class="cf">if</span> (type <span class="op">===</span> <span class="st">&#39;RESULT&#39;</span>) {</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&#39;Result from Wasm worker:&#39;</span><span class="op">,</span> payload)<span class="op">;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
+<h2 id="data-transfer-mechanisms">Data Transfer Mechanisms</h2>
+<p>When passing data between the main thread and the Wasm Web Worker,
+you have two primary strategies depending on performance
+requirements:</p>
+<h3 id="1-message-passing-structured-cloning">1. Message Passing
+(Structured Cloning)</h3>
+<p>By default, sending data via <code>postMessage()</code> uses the
+structured clone algorithm. The browser copies the data before sending
+it to the worker. While simple and safe, copying large datasets (like
+high-resolution images or massive arrays) introduces CPU overhead.</p>
+<h3 id="2-shared-memory-sharedarraybuffer">2. Shared Memory
+(SharedArrayBuffer)</h3>
+<p>For maximum performance, you can use <code>SharedArrayBuffer</code>
+to share memory directly between the main thread and the Web Worker. By
+passing a shared memory object to both the Wasm instance and the worker,
+both threads can read and write to the same memory space instantly
+without cloning data.</p>
+<p>To use shared memory, you must instantiate WebAssembly with a shared
+memory configuration:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> memory <span class="op">=</span> <span class="kw">new</span> WebAssembly<span class="op">.</span><span class="fu">Memory</span>({</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">initial</span><span class="op">:</span> <span class="dv">256</span><span class="op">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">maximum</span><span class="op">:</span> <span class="dv">512</span><span class="op">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">shared</span><span class="op">:</span> <span class="kw">true</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<p><em>Note: To use <code>SharedArrayBuffer</code> in production, your
+web server must serve the site with specific security headers:
+<code>Cross-Origin-Opener-Policy: same-origin</code> and
+<code>Cross-Origin-Embedder-Policy: require-corp</code>.</em></p>
+<h2 id="best-practices-for-integration">Best Practices for
+Integration</h2>
+<ul>
+<li><strong>Use Thread Pools:</strong> For highly parallelizable tasks
+like image processing or cryptography, spawn multiple Web Workers
+(typically matching <code>navigator.hardwareConcurrency</code>) and
+distribute the Wasm workloads among them.</li>
+<li><strong>Keep the Main Thread Idle:</strong> Only use the main thread
+for UI rendering, event handling, and DOM updates. All mathematics,
+parsing, and algorithms should live inside the Wasm worker.</li>
+<li><strong>Handle Memory Safely:</strong> When using shared memory,
+leverage WebAssembly's synchronization primitives (such as atomic
+operations and futexes) to prevent race conditions and data corruption
+between threads.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

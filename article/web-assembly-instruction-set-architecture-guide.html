@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAssembly Instruction Set Architecture Guide - wasm</title>
+    <meta name="description" content="This article provides a comprehensive overview of the primary instructions that make up the WebAssembly (Wasm) instruction set architecture. WebAssembly is designed as a low-level, stack-based virtual machine, and understanding its core instruction categ">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/web-assembly-instruction-set-architecture-guide">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="WebAssembly Instruction Set Architecture Guide - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/web-assembly-instruction-set-architecture-guide" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a comprehensive overview of the primary instructions that make up the WebAssembly (Wasm) instruction set architecture. WebAssembly is designed as a low-level, stack-based virtual machine, and understanding its core instruction categ" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="webassembly-instruction-set-architecture-guide">WebAssembly
+Instruction Set Architecture Guide</h1>
+<p>This article provides a comprehensive overview of the primary
+instructions that make up the WebAssembly (Wasm) instruction set
+architecture. WebAssembly is designed as a low-level, stack-based
+virtual machine, and understanding its core instruction
+categories—including numeric, parametric, variable, memory, and control
+flow instructions—is essential for understanding how Wasm executes code
+with near-native speed and security.</p>
+<h2 id="the-stack-based-design">The Stack-Based Design</h2>
+<p>Before diving into the instruction categories, it is important to
+note that WebAssembly operates on a conceptual <strong>operand
+stack</strong>. Most instructions pop their arguments off this stack,
+perform an operation, and push the result back onto the stack.</p>
+<hr />
+<h2 id="1-numeric-instructions">1. Numeric Instructions</h2>
+<p>Numeric instructions perform basic arithmetic, bitwise operations,
+comparisons, and type conversions. WebAssembly supports four primary
+numeric types: 32-bit integers (<code>i32</code>), 64-bit integers
+(<code>i64</code>), 32-bit floats (<code>f32</code>), and 64-bit floats
+(<code>f64</code>).</p>
+<ul>
+<li><strong>Arithmetic Operations:</strong> Standard math operations
+such as addition (<code>add</code>), subtraction (<code>sub</code>),
+multiplication (<code>mul</code>), and division (<code>div_s</code> for
+signed, <code>div_u</code> for unsigned, or <code>div</code> for
+floats). Wasm also supports remainder
+(<code>rem_s</code>/<code>rem_u</code>), square root
+(<code>sqrt</code>), and absolute value (<code>abs</code>).</li>
+<li><strong>Bitwise and Shift Operations:</strong> Operations used to
+manipulate bits, including <code>and</code>, <code>or</code>,
+<code>xor</code>, shift left (<code>shl</code>), shift right
+(<code>shr_s</code>/<code>shr_u</code>), and rotation
+(<code>rotl</code>/<code>rotr</code>).</li>
+<li><strong>Comparison Operations:</strong> Used to compare two values,
+pushing a boolean <code>1</code> (true) or <code>0</code> (false) to the
+stack. Examples include equal (<code>eq</code>), not equal
+(<code>ne</code>), less than (<code>lt</code>), and greater than
+(<code>gt</code>).</li>
+<li><strong>Conversion Operations:</strong> Instructions that convert a
+value from one type to another, such as wrapping, truncating, promoting,
+demoting, or converting between integers and floating-point numbers
+(e.g., <code>i32.wrap_i64</code> or
+<code>f32.convert_i32_s</code>).</li>
+</ul>
+<hr />
+<h2 id="2-variable-instructions">2. Variable Instructions</h2>
+<p>Variable instructions provide access to local variables within a
+function, as well as global variables accessible across the entire
+module.</p>
+<ul>
+<li><strong><code>local.get</code></strong>: Reads the value of a
+specific local variable and pushes it onto the stack.</li>
+<li><strong><code>local.set</code></strong>: Pops a value from the stack
+and writes it to a specific local variable.</li>
+<li><strong><code>local.tee</code></strong>: Writes the top value of the
+stack to a local variable but leaves the value on the stack for
+subsequent instructions.</li>
+<li><strong><code>global.get</code></strong>: Reads the value of a
+global variable.</li>
+<li><strong><code>global.set</code></strong>: Mutates the value of a
+global variable (if the global is defined as mutable).</li>
+</ul>
+<hr />
+<h2 id="3-parametric-instructions">3. Parametric Instructions</h2>
+<p>Parametric instructions are generic operations that manipulate values
+on the operand stack regardless of their specific Wasm data type.</p>
+<ul>
+<li><strong><code>drop</code></strong>: Pops the top value off the stack
+and discards it. This is useful for ignoring the return value of a
+function call.</li>
+<li><strong><code>select</code></strong>: Operates like a ternary
+operator. It takes three values from the stack: two operands and a
+condition (i32). If the condition is non-zero, it keeps the first
+operand; otherwise, it keeps the second operand.</li>
+</ul>
+<hr />
+<h2 id="4-memory-instructions">4. Memory Instructions</h2>
+<p>WebAssembly utilizes a flat, linear memory model represented as a
+contiguous array of raw bytes. Memory instructions allow the virtual
+machine to read from and write to this space.</p>
+<ul>
+<li><strong>Load Instructions:</strong> Read a value from a specified
+memory address and push it onto the stack (e.g., <code>i32.load</code>,
+<code>f64.load</code>). Variants like <code>i32.load8_s</code> read a
+single byte and sign-extend it to a 32-bit integer.</li>
+<li><strong>Store Instructions:</strong> Pop a value from the stack and
+write it to a specified memory address (e.g., <code>i32.store</code>,
+<code>f32.store</code>).</li>
+<li><strong><code>memory.size</code></strong>: Returns the current size
+of the linear memory in pages (where one page is 64 KiB).</li>
+<li><strong><code>memory.grow</code></strong>: Dynamically increases the
+size of the linear memory by a specified number of pages.</li>
+</ul>
+<hr />
+<h2 id="5-control-flow-instructions">5. Control Flow Instructions</h2>
+<p>Unlike traditional assembly languages that use arbitrary jumps (like
+<code>goto</code>), WebAssembly enforces structured control flow. This
+makes validation faster and ensures execution safety.</p>
+<ul>
+<li><strong><code>block</code></strong>: Defines a sequence of
+instructions. Jumping out of a block moves execution to the instruction
+immediately following the block.</li>
+<li><strong><code>loop</code></strong>: Defines a block of instructions
+that can be branched back to, creating a loop execution path.</li>
+<li><strong><code>if</code> / <code>else</code> /
+<code>end</code></strong>: Conditional blocks. The <code>if</code>
+instruction pops an <code>i32</code> from the stack; if it is non-zero,
+the <code>if</code> branch executes, otherwise the <code>else</code>
+branch (if present) executes.</li>
+<li><strong><code>br</code> (Branch):</strong> Performs an unconditional
+branch to a target label (defined by surrounding control blocks).</li>
+<li><strong><code>br_if</code></strong>: Performs a conditional branch
+if the top stack value is non-zero.</li>
+<li><strong><code>br_table</code></strong>: A jump table instruction,
+useful for compiling <code>switch</code> statements.</li>
+<li><strong><code>return</code></strong>: Immediately exits the current
+function, returning any values currently on the stack as the function's
+results.</li>
+<li><strong><code>call</code></strong>: Invokes another function by its
+index.</li>
+<li><strong><code>call_indirect</code></strong>: Invokes a function
+dynamically through a table of function pointers, which is crucial for
+implementing features like virtual method tables and dynamic
+dispatch.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

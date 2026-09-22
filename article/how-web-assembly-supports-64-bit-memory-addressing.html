@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How WebAssembly Supports 64-Bit Memory Addressing - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) historically limited applications to a 32-bit linear memory space, restricting maximum memory usage to 4 gigabytes. To overcome this limitation for memory-intensive applications, the WebAssembly community developed the "Memory64" propo">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-web-assembly-supports-64-bit-memory-addressing">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How WebAssembly Supports 64-Bit Memory Addressing - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-web-assembly-supports-64-bit-memory-addressing" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) historically limited applications to a 32-bit linear memory space, restricting maximum memory usage to 4 gigabytes. To overcome this limitation for memory-intensive applications, the WebAssembly community developed the "Memory64" propo" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-webassembly-supports-64-bit-memory-addressing">How
+WebAssembly Supports 64-Bit Memory Addressing</h1>
+<p>WebAssembly (Wasm) historically limited applications to a 32-bit
+linear memory space, restricting maximum memory usage to 4 gigabytes. To
+overcome this limitation for memory-intensive applications, the
+WebAssembly community developed the "Memory64" proposal, which
+introduces support for 64-bit memory addressing. This article explains
+how WebAssembly implements 64-bit memory addressing, the technical
+changes it introduces to the Wasm instruction set, and the practical
+implications for developers.</p>
+<h2 id="the-32-bit-limitation">The 32-Bit Limitation</h2>
+<p>In standard WebAssembly (often referred to as wasm32), the linear
+memory is indexed using 32-bit unsigned integers. This means that
+instructions like loads, stores, and memory management operations (such
+as growing the memory) use <code>i32</code> values to represent
+addresses. Consequently, the maximum addressable space is <span
+class="math inline">\(2^{32}\)</span> bytes, which translates to exactly
+4 GiB of virtual memory.</p>
+<p>While 4 GiB is sufficient for typical web applications, it acts as a
+bottleneck for complex desktop-class software ported to the web, such as
+large-scale databases, video editing suites, scientific simulations, and
+modern game engines.</p>
+<h2 id="introducing-memory64">Introducing Memory64</h2>
+<p>The Memory64 proposal (wasm64) solves this bottleneck by allowing
+WebAssembly linear memory to be indexed using 64-bit integers
+(<code>i64</code>). This expands the theoretical maximum addressable
+memory space to <span class="math inline">\(2^{64}\)</span> bytes (16
+exabytes), though actual execution environments and operating systems
+will impose much lower, practical runtime limits.</p>
+<p>To support 64-bit addressing, WebAssembly introduces changes to
+several core components of its specification:</p>
+<h3 id="1-memory-definitions">1. Memory Definitions</h3>
+<p>When defining a memory module in Wasm, the developer or compiler can
+now specify the index type. A memory definition includes a flag
+indicating whether it uses <code>i32</code> (wasm32) or <code>i64</code>
+(wasm64) for indexing.</p>
+<h3 id="2-instruction-set-adaptation">2. Instruction Set Adaptation</h3>
+<p>All memory-related instructions are adapted to use the 64-bit index
+type when operating on a 64-bit memory. This includes:</p>
+<ul>
+<li><strong>Loads and Stores:</strong> Instructions like
+<code>i32.load</code>, <code>i64.store</code>, and their variants accept
+64-bit effective addresses (composed of a 64-bit base address from the
+stack and a static offset).</li>
+<li><strong>Memory Management:</strong> The <code>memory.size</code> and
+<code>memory.grow</code> instructions return and accept <code>i64</code>
+values, respectively, allowing the engine to allocate and report memory
+sizes beyond the 4 GiB barrier.</li>
+<li><strong>Bulk Memory Operations:</strong> Operations like
+<code>memory.copy</code>, <code>memory.fill</code>, and
+<code>memory.init</code> use 64-bit integers for offsets and element
+counts.</li>
+</ul>
+<h3 id="3-table-offsets">3. Table Offsets</h3>
+<p>Similar to linear memory, WebAssembly tables can also benefit from
+64-bit indexing. Under the Memory64 proposal, table instructions (like
+<code>table.get</code>, <code>table.set</code>, and
+<code>table.grow</code>) can use <code>i64</code> types to index
+elements, allowing for much larger tables of function references or
+objects.</p>
+<h2 id="practical-considerations-and-support">Practical Considerations
+and Support</h2>
+<p>To use 64-bit memory addressing, developers must compile their source
+code (usually written in C, C++, Rust, or Zig) targeting the
+<code>wasm64</code> architecture instead of the traditional
+<code>wasm32</code> target. Toolchains like Emscripten and LLVM provide
+built-in flags to enable this target.</p>
+<p>At the runtime level, major web browsers and standalone WebAssembly
+runtimes (such as Wasmtime and Wasmer) support the Memory64 proposal,
+either natively or behind experimental flags. Because 64-bit addressing
+requires 64-bit pointers, applications running on wasm64 may experience
+a slight increase in memory overhead (known as pointer bloat) and minor
+cache performance differences compared to wasm32, but they gain the
+ability to process massive datasets seamlessly.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How WebAssembly Achieves a Sandboxed Environment - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) provides a secure, lightweight, and highly performant execution environment by running code inside a strict, isolated sandbox. This article explores the core mechanisms Wasm uses to achieve this isolation, focusing on its linear memory">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-web-assembly-achieves-a-sandboxed-environment">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How WebAssembly Achieves a Sandboxed Environment - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-web-assembly-achieves-a-sandboxed-environment" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) provides a secure, lightweight, and highly performant execution environment by running code inside a strict, isolated sandbox. This article explores the core mechanisms Wasm uses to achieve this isolation, focusing on its linear memory" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-webassembly-achieves-a-sandboxed-environment">How
+WebAssembly Achieves a Sandboxed Environment</h1>
+<p>WebAssembly (Wasm) provides a secure, lightweight, and highly
+performant execution environment by running code inside a strict,
+isolated sandbox. This article explores the core mechanisms Wasm uses to
+achieve this isolation, focusing on its linear memory architecture,
+strict bytecode validation, capability-based security model, and
+structured control flow. Together, these features ensure that untrusted
+code can run at near-native speed without compromising the security of
+the host system.</p>
+<h3 id="linear-memory-isolation">Linear Memory Isolation</h3>
+<p>The cornerstone of WebAssembly's security is its use of a "linear
+memory" model. Unlike traditional native applications that can access
+the entire address space of the host operating system, a Wasm module is
+confined to a single, contiguous array of raw bytes.</p>
+<p>All memory reads and writes within the Wasm module are offsets
+relative to the start of this linear memory. The runtime automatically
+performs bounds-checking on every memory access. If the Wasm code
+attempts to read or write data outside the boundaries of this allocated
+array, the runtime instantly triggers a trap and terminates execution.
+Because the Wasm module has no concept of physical memory addresses,
+pointer arithmetic cannot be abused to escape the sandbox or access host
+memory.</p>
+<h3 id="strict-bytecode-validation">Strict Bytecode Validation</h3>
+<p>Before a WebAssembly module is compiled into machine code and
+executed, the runtime performs a rigorous static analysis phase called
+validation. This verification process ensures that the binary format is
+structurally valid and adheres to the strict type safety rules of the
+Wasm specification.</p>
+<p>Validation guarantees that:</p>
+<ul>
+<li>Variable and function types are strictly respected.</li>
+<li>The execution stack remains in a valid state throughout
+execution.</li>
+<li>There are no invalid jumps or corrupt instructions.</li>
+<li>The code cannot manipulate the execution stack directly.</li>
+</ul>
+<p>By rejecting malformed or malicious bytecode prior to execution, the
+runtime prevents common exploits such as buffer overflows and arbitrary
+code execution.</p>
+<h3
+id="capability-based-security-shared-nothing-design">Capability-Based
+Security (Shared-Nothing Design)</h3>
+<p>By default, WebAssembly modules are entirely isolated and possess a
+"shared-nothing" architecture. A Wasm module has no direct access to the
+operating system, file system, network, or hardware. It cannot even
+access the DOM when running inside a web browser.</p>
+<p>To interact with the outside world, a Wasm module must rely on
+explicit imports provided by the host environment (such as JavaScript
+APIs in browsers or the WebAssembly System Interface, WASI, in
+server-side runtimes). The host environment acts as a gatekeeper,
+granting only specific capabilities. If the host does not explicitly
+import a function to read a file or make a network request, the Wasm
+module has no physical way to perform those actions.</p>
+<h3 id="structured-control-flow-and-stack-isolation">Structured Control
+Flow and Stack Isolation</h3>
+<p>Traditional native binaries are susceptible to control-flow
+hijacking, such as Return-Oriented Programming (ROP) attacks, where
+malicious actors manipulate the call stack to redirect execution.
+WebAssembly mitigates this risk by enforcing structured control flow and
+isolating the execution stack.</p>
+<p>In Wasm, the call stack (which stores function return addresses and
+local variables) is maintained by the runtime and is entirely separate
+from the linear memory. WebAssembly code cannot read from or write to
+the call stack. Furthermore, Wasm does not support arbitrary jump
+instructions (like <code>goto</code>). Instead, it uses structured
+control flow constructs (such as blocks, loops, and conditional
+branches) that target pre-defined, valid code blocks. This guarantees
+that execution paths are predictable and cannot be redirected to
+arbitrary memory locations.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

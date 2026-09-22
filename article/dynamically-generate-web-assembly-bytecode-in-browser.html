@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamically Generate WebAssembly Bytecode in Browser - wasm</title>
+    <meta name="description" content="This article explains how to dynamically generate WebAssembly (Wasm) bytecode at runtime directly within a web browser. It covers the technical feasibility of browser-side Wasm generation, the APIs required to instantiate this bytecode, practical use cas">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/dynamically-generate-web-assembly-bytecode-in-browser">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Dynamically Generate WebAssembly Bytecode in Browser - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/dynamically-generate-web-assembly-bytecode-in-browser" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to dynamically generate WebAssembly (Wasm) bytecode at runtime directly within a web browser. It covers the technical feasibility of browser-side Wasm generation, the APIs required to instantiate this bytecode, practical use cas" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1
+id="dynamically-generate-webassembly-bytecode-in-browser">Dynamically
+Generate WebAssembly Bytecode in Browser</h1>
+<p>This article explains how to dynamically generate WebAssembly (Wasm)
+bytecode at runtime directly within a web browser. It covers the
+technical feasibility of browser-side Wasm generation, the APIs required
+to instantiate this bytecode, practical use cases like JIT compilers,
+and the security constraints you must navigate to implement this
+technique successfully.</p>
+<h2 id="yes-you-can-generate-wasm-at-runtime">Yes, You Can Generate Wasm
+at Runtime</h2>
+<p>It is entirely possible to dynamically generate and execute
+WebAssembly bytecode at runtime inside the browser. WebAssembly modules
+are ultimately represented as binary data—specifically, an array of
+bytes conforming to the WebAssembly binary format specification.</p>
+<p>Because JavaScript can manipulate binary data using typed arrays
+(like <code>Uint8Array</code>), you can programmatically construct Wasm
+bytecode instruction-by-instruction in JavaScript and then compile it
+into an executable module on the fly.</p>
+<h2 id="how-runtime-wasm-generation-works">How Runtime Wasm Generation
+Works</h2>
+<p>To generate and run WebAssembly dynamically in the browser, you
+follow a three-step process:</p>
+<h3 id="1-generate-the-byte-array">1. Generate the Byte Array</h3>
+<p>You must first generate a <code>Uint8Array</code> that contains the
+valid binary representation of a WebAssembly module. This module must
+include the standard Wasm headers, sections (such as Type, Function,
+Export, and Code sections), and the actual bytecode instructions.</p>
+<p>For example, a minimal Wasm module that exports a function returning
+the number <code>42</code> looks like this in raw bytes:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> binary <span class="op">=</span> <span class="kw">new</span> <span class="bu">Uint8Array</span>([</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="bn">0x00</span><span class="op">,</span> <span class="bn">0x61</span><span class="op">,</span> <span class="bn">0x73</span><span class="op">,</span> <span class="bn">0x6d</span><span class="op">,</span> <span class="co">// Magic number: &quot;\0asm&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="bn">0x01</span><span class="op">,</span> <span class="bn">0x00</span><span class="op">,</span> <span class="bn">0x00</span><span class="op">,</span> <span class="bn">0x00</span><span class="op">,</span> <span class="co">// Version: 1</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ... (additional section bytes defining types, functions, and code)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>])<span class="op">;</span></span></code></pre></div>
+<p>Because writing raw binary by hand is difficult, developers often use
+helper libraries in the browser:</p>
+<ul>
+<li><strong>Binaryen (binaryen.js):</strong> A compiler infrastructure
+library that can be loaded in the browser to generate and optimize Wasm
+code via a friendly API.</li>
+<li><strong>WABT (wabt.js):</strong> The WebAssembly Binary Toolkit,
+which allows you to write human-readable WebAssembly Text Format (WAT)
+as a string and compile it to binary format directly in the
+browser.</li>
+</ul>
+<h3 id="2-compile-and-instantiate-the-bytes">2. Compile and Instantiate
+the Bytes</h3>
+<p>Once you have the bytecode in a <code>Uint8Array</code>, you use the
+browser's built-in <code>WebAssembly</code> API to compile and
+instantiate the module:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">loadDynamicWasm</span>(bytes) {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Compile the raw bytes into a WebAssembly Module</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> module <span class="op">=</span> <span class="cf">await</span> WebAssembly<span class="op">.</span><span class="fu">compile</span>(bytes)<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Instantiate the module with optional imports</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> instance <span class="op">=</span> <span class="cf">await</span> WebAssembly<span class="op">.</span><span class="fu">instantiate</span>(module<span class="op">,</span> {})<span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Call an exported function from the dynamically generated Wasm</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(instance<span class="op">.</span><span class="at">exports</span><span class="op">.</span><span class="fu">myGeneratedFunction</span>())<span class="op">;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Alternatively, you can use
+<code>WebAssembly.instantiate(bytes)</code> to compile and instantiate
+in a single step.</p>
+<h2 id="key-use-cases">Key Use Cases</h2>
+<ul>
+<li><strong>Just-In-Time (JIT) Compilers:</strong> Emulators, virtual
+machines, and custom scripting languages can translate guest code into
+Wasm bytecode at runtime for native-like execution speeds.</li>
+<li><strong>Dynamic Query Optimization:</strong> Database engines
+running in the browser (like DuckDB or SQLite via Wasm) can compile SQL
+queries into optimized Wasm bytecode on the fly to accelerate
+execution.</li>
+<li><strong>Mathematical Function Evaluation:</strong> Applications that
+require plotting or evaluating user-defined mathematical formulas can
+compile those formulas into Wasm at runtime to avoid the overhead of
+JavaScript evaluation.</li>
+</ul>
+<h2 id="security-constraints-content-security-policy-csp">Security
+Constraints: Content Security Policy (CSP)</h2>
+<p>While technically feasible, runtime Wasm compilation is subject to
+browser security policies. If the website uses a Content Security Policy
+(CSP), generating Wasm from raw bytes may be blocked by default.</p>
+<p>To allow runtime compilation of dynamic Wasm bytes, the server
+hosting the page must deliver a CSP header that explicitly permits
+it.</p>
+<ul>
+<li><strong>Modern Browsers:</strong> Require the
+<code>wasm-unsafe-eval</code> directive in the <code>script-src</code>
+policy:
+<pre class="http"><code>Content-Security-Policy: script-src &#39;self&#39; &#39;wasm-unsafe-eval&#39;;</code></pre></li>
+<li><strong>Older Browsers:</strong> May require the broader and less
+secure <code>unsafe-eval</code> directive:
+<pre class="http"><code>Content-Security-Policy: script-src &#39;self&#39; &#39;unsafe-eval&#39;;</code></pre></li>
+</ul>
+<p>Without these directives, calling <code>WebAssembly.compile()</code>
+or <code>WebAssembly.instantiate()</code> on a dynamically generated
+byte array will throw a <code>SecurityError</code>.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

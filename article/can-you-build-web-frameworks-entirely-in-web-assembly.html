@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Can You Build Web Frameworks Entirely in WebAssembly? - wasm</title>
+    <meta name="description" content="WebAssembly (WASM) has revolutionized web development by allowing high-performance, compiled languages to run in the browser alongside JavaScript. While it is technically possible to write entire front-end web frameworks in languages that compile to WebA">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/can-you-build-web-frameworks-entirely-in-web-assembly">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Can You Build Web Frameworks Entirely in WebAssembly? - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/can-you-build-web-frameworks-entirely-in-web-assembly" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (WASM) has revolutionized web development by allowing high-performance, compiled languages to run in the browser alongside JavaScript. While it is technically possible to write entire front-end web frameworks in languages that compile to WebA" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="can-you-build-web-frameworks-entirely-in-webassembly">Can You
+Build Web Frameworks Entirely in WebAssembly?</h1>
+<p>WebAssembly (WASM) has revolutionized web development by allowing
+high-performance, compiled languages to run in the browser alongside
+JavaScript. While it is technically possible to write entire front-end
+web frameworks in languages that compile to WebAssembly, current browser
+limitations require a thin JavaScript bridge to interact with the
+Document Object Model (DOM). This article explores how WASM-based
+frameworks operate, the current limitations of bypassing JavaScript
+entirely, and the prominent frameworks leading this space.</p>
+<h2 id="the-short-answer-yes-but-with-a-catch">The Short Answer: Yes,
+But With a Catch</h2>
+<p>You can build and run entire front-end applications using frameworks
+written in languages like Rust, C#, or Go that compile to WebAssembly.
+Frameworks like Yew (Rust), Leptos (Rust), and Microsoft Blazor (C#)
+allow developers to write 100% of their application logic, routing, and
+state management without writing a single line of JavaScript.</p>
+<p>However, under the hood, these frameworks are not <em>entirely</em>
+independent of JavaScript. WebAssembly currently lacks direct access to
+the Web APIs and the DOM. To update the user interface, handle events,
+or access browser storage, WASM must communicate with the browser
+through a JavaScript "glue code" bridge.</p>
+<h2 id="how-wasm-frameworks-interact-with-the-dom">How WASM Frameworks
+Interact with the DOM</h2>
+<p>Because WebAssembly cannot directly manipulate HTML elements, WASM
+frameworks use the following workflow to render websites:</p>
+<ol type="1">
+<li><strong>Compilation:</strong> The framework code (written in Rust,
+C#, etc.) is compiled into a <code>.wasm</code> binary file.</li>
+<li><strong>Initialization:</strong> The browser loads a small
+JavaScript file alongside the WASM binary. This JS file acts as the
+intermediary.</li>
+<li><strong>Virtual DOM and Serialization:</strong> When the WASM code
+needs to update the UI, it calculates the changes (often using a Virtual
+DOM) and serializes these instructions.</li>
+<li><strong>JS Bridge Execution:</strong> The WASM module passes these
+instructions across the boundary to the JavaScript glue code, which
+performs the actual DOM manipulation (like
+<code>document.createElement</code> or
+<code>element.appendChild</code>).</li>
+</ol>
+<p>While this boundary crossing historically introduced performance
+overhead, modern WASM engines and framework optimizations have made this
+process incredibly fast, often rivaling or exceeding traditional
+JavaScript frameworks in raw rendering speed.</p>
+<h2 id="the-future-true-js-free-webassembly">The Future: True "JS-Free"
+WebAssembly</h2>
+<p>The dependency on JavaScript is a temporary limitation rather than a
+permanent design choice. Two major ongoing WebAssembly proposals aim to
+eliminate the need for JavaScript entirely:</p>
+<ul>
+<li><strong>WasmGC (Garbage Collection):</strong> Recently enabled by
+default in major browsers, WasmGC allows WASM to integrate directly with
+the browser's garbage collector. This is crucial for languages like
+Java, Dart, and Kotlin, allowing them to run efficiently in WASM without
+shipping their own heavy runtime garbage collectors.</li>
+<li><strong>Component Model and WebIDL Bindings:</strong> Future
+specifications aim to give WebAssembly direct, high-performance access
+to host APIs, including the DOM, CSSOM, and Web Fetch API, completely
+bypassing the need for JavaScript glue code.</li>
+</ul>
+<h2 id="popular-wasm-based-web-frameworks">Popular WASM-Based Web
+Frameworks</h2>
+<p>Several mature frameworks allow developers to build production-ready
+front-ends using WebAssembly today:</p>
+<ul>
+<li><strong>Yew (Rust):</strong> A component-based Rust framework
+utilizing a virtual DOM, similar to React. It is highly praised for its
+performance and type safety.</li>
+<li><strong>Leptos (Rust):</strong> A modern, declarative, reactive web
+framework that compiles to WASM. It focuses on fine-grained reactivity
+without a virtual DOM, resulting in extremely fast rendering times.</li>
+<li><strong>Microsoft Blazor (C#):</strong> Part of the .NET ecosystem,
+Blazor WebAssembly allows developers to build interactive web UIs using
+C# instead of JavaScript, sharing code directly between the client and
+server.</li>
+</ul>
+<h2 id="pros-and-cons-of-wasm-frameworks">Pros and Cons of WASM
+Frameworks</h2>
+<h3 id="advantages">Advantages</h3>
+<ul>
+<li><strong>Language Choice:</strong> Developers can use statically
+typed, memory-safe languages like Rust or Go for frontend
+development.</li>
+<li><strong>Performance:</strong> Exceptional performance for
+CPU-intensive tasks like image processing, physics engines, and complex
+data visualization.</li>
+<li><strong>Code Sharing:</strong> The ability to share data models and
+business logic seamlessly between backend and frontend codebases.</li>
+</ul>
+<h3 id="disadvantages">Disadvantages</h3>
+<ul>
+<li><strong>Initial Load Time:</strong> WASM binaries and their
+associated runtimes can be significantly larger than minimized
+JavaScript files, leading to slower initial page loads.</li>
+<li><strong>Ecosystem Size:</strong> While growing, the ecosystem of UI
+libraries, tools, and community support for WASM frameworks is much
+smaller than that of React, Vue, or Angular.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

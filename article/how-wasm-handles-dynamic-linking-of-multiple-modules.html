@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Wasm Handles Dynamic Linking of Multiple Modules - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) handles dynamic linking of multiple modules at runtime by leveraging exports, imports, shared memory, and function tables, all orchestrated by a host environment like a web browser or a system runtime. Unlike traditional operating syst">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-wasm-handles-dynamic-linking-of-multiple-modules">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How Wasm Handles Dynamic Linking of Multiple Modules - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-wasm-handles-dynamic-linking-of-multiple-modules" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) handles dynamic linking of multiple modules at runtime by leveraging exports, imports, shared memory, and function tables, all orchestrated by a host environment like a web browser or a system runtime. Unlike traditional operating syst" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-wasm-handles-dynamic-linking-of-multiple-modules">How Wasm
+Handles Dynamic Linking of Multiple Modules</h1>
+<p>WebAssembly (Wasm) handles dynamic linking of multiple modules at
+runtime by leveraging exports, imports, shared memory, and function
+tables, all orchestrated by a host environment like a web browser or a
+system runtime. Unlike traditional operating systems where the OS loader
+resolves symbols at runtime, Wasm relies on the host to pass exports
+from one instantiated module as imports to another. This article
+explains the core mechanisms behind Wasm dynamic linking, including the
+role of the host, WebAssembly tables, shared linear memory, and the
+emerging WebAssembly Component Model.</p>
+<h2 id="the-role-of-the-host-environment">The Role of the Host
+Environment</h2>
+<p>WebAssembly modules are isolated sandboxes that cannot directly
+access each other's address spaces or functions without explicit
+permission. Because Wasm lacks a native runtime loader, the host
+environment (such as JavaScript in the browser, or runtimes like
+Wasmtime and Wasmer on the server) acts as the dynamic linker.</p>
+<p>During runtime, the process typically follows these steps:</p>
+<ol type="1">
+<li>The host compiles and instantiates a "library" Wasm module.</li>
+<li>The host extracts the exported functions, memories, or tables from
+this library module.</li>
+<li>The host compiles a "main" Wasm module that declares these same
+functions, memories, or tables as imports.</li>
+<li>The host instantiates the main module, passing the library's exports
+into the main module's import object.</li>
+</ol>
+<p>This mechanism allows the main module to call functions defined in
+the library module seamlessly.</p>
+<h2 id="shared-memory-and-globals">Shared Memory and Globals</h2>
+<p>For dynamic linking to be useful, modules often need to share state
+and data pointers. Wasm accomplishes this by sharing a single
+<code>WebAssembly.Memory</code> object across multiple modules.</p>
+<ul>
+<li><strong>Imported Memory:</strong> Instead of each module allocating
+its own private linear memory, the host creates a single memory object
+and passes it as an import to all linked modules. This allows pointers
+(which are simply integer offsets in Wasm) to remain valid when passed
+from one module to another.</li>
+<li><strong>Global Shadow Stack and Heap:</strong> Toolchains (like
+Emscripten or LLVM) ensure that the linked modules agree on how this
+shared memory is partitioned, preventing them from overwriting each
+other's stack or heap allocations.</li>
+</ul>
+<h2 id="webassembly-tables-and-function-pointers">WebAssembly Tables and
+Function Pointers</h2>
+<p>In languages like C or C++, dynamic linking relies heavily on
+function pointers (for callbacks, virtual method tables, or dynamic
+loading via <code>dlopen</code>). WebAssembly enforces strict security,
+meaning you cannot call a raw memory address as a function.</p>
+<p>To solve this, Wasm uses <strong>Tables</strong>. A Table is a secure
+array of reference types (usually function references) that resides
+outside of the linear memory.</p>
+<ul>
+<li>To dynamically link functions, modules share a single
+<code>WebAssembly.Table</code>.</li>
+<li>When a module needs to call a dynamically linked function via a
+pointer, it uses the <code>call_indirect</code> instruction, referencing
+an index in the shared Table.</li>
+<li>The host or the loading module populates this table at runtime with
+the appropriate function references.</li>
+</ul>
+<h2 id="toolchain-implementation-the-dlopen-model">Toolchain
+Implementation: The dlopen Model</h2>
+<p>To make dynamic linking feel familiar to developers, toolchains like
+Emscripten and WASI-SDK implement standard C library functions like
+<code>dlopen</code> and <code>dlsym</code> using Wasm's primitives.</p>
+<p>When a program calls <code>dlopen</code> at runtime:</p>
+<ol type="1">
+<li>The system-level Wasm code calls out to the host environment.</li>
+<li>The host fetches, compiles, and instantiates the requested
+<code>.wasm</code> shared library module.</li>
+<li>The host integrates the new module's functions into the shared Table
+and maps its memory requirements.</li>
+<li><code>dlsym</code> then returns the index of the requested function
+within the WebAssembly Table, allowing the application to call it
+indirectly.</li>
+</ol>
+<h2 id="the-webassembly-component-model">The WebAssembly Component
+Model</h2>
+<p>The traditional approach to dynamic linking requires tight
+coordination and often forces modules to share the same language
+toolchain and memory layout. The <strong>WebAssembly Component
+Model</strong> is a newer specification designed to standardize and
+simplify this process.</p>
+<p>The Component Model introduces:</p>
+<ul>
+<li><strong>Interfaces (WIT):</strong> WebAssembly Interface Type files
+define the boundaries and types of a component without exposing raw
+memory layouts.</li>
+<li><strong>Shared-Nothing Linking:</strong> Instead of sharing a single
+linear memory (which poses security risks), components copy data across
+boundaries using canonical ABI definitions.</li>
+<li><strong>Declarative Composition:</strong> Tools can compose multiple
+independent Wasm components (even those written in different programming
+languages) into a single executable component before or during runtime,
+automating the generation of the necessary import and export glue
+code.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

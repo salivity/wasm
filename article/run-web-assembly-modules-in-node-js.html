@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run WebAssembly Modules in Node.js - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) is not limited to web browsers; it is also fully supported in backend environments. This article explains how to execute WebAssembly modules within a Node.js backend using native APIs, outlines the core steps to load and run Wasm binar">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/run-web-assembly-modules-in-node-js">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Run WebAssembly Modules in Node.js - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/run-web-assembly-modules-in-node-js" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) is not limited to web browsers; it is also fully supported in backend environments. This article explains how to execute WebAssembly modules within a Node.js backend using native APIs, outlines the core steps to load and run Wasm binar" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="run-webassembly-modules-in-nodejs">Run WebAssembly Modules in
+Node.js</h1>
+<p>WebAssembly (Wasm) is not limited to web browsers; it is also fully
+supported in backend environments. This article explains how to execute
+WebAssembly modules within a Node.js backend using native APIs, outlines
+the core steps to load and run Wasm binaries, and highlights when to use
+this technology for server-side performance optimization.</p>
+<p>Yes, you can execute WebAssembly modules directly within a Node.js
+backend environment. Node.js has featured native support for WebAssembly
+since version 8.0.0, powered by the V8 engine. This allows developers to
+run high-performance code written in languages like Rust, C/C++, or Go
+alongside standard JavaScript applications.</p>
+<p>To run a WebAssembly module in Node.js, you must follow three main
+steps: load the binary file, compile and instantiate it, and call the
+exported functions.</p>
+<h3 id="step-by-step-implementation">Step-by-Step Implementation</h3>
+<p>Because Node.js runs on the server, you typically load the Wasm
+binary from the local file system using the built-in <code>fs</code>
+module.</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> fs <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;fs&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> path <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;path&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">runWasm</span>() {</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// 1. Read the .wasm file into a buffer</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> wasmPath <span class="op">=</span> path<span class="op">.</span><span class="fu">join</span>(<span class="bu">__dirname</span><span class="op">,</span> <span class="st">&#39;math.wasm&#39;</span>)<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> wasmBuffer <span class="op">=</span> fs<span class="op">.</span><span class="fu">readFileSync</span>(wasmPath)<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">// 2. Compile and instantiate the WebAssembly bytecode</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> { instance } <span class="op">=</span> <span class="cf">await</span> WebAssembly<span class="op">.</span><span class="fu">instantiate</span>(wasmBuffer)<span class="op">;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="co">// 3. Call the exported WebAssembly functions</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> result <span class="op">=</span> instance<span class="op">.</span><span class="at">exports</span><span class="op">.</span><span class="fu">add</span>(<span class="dv">5</span><span class="op">,</span> <span class="dv">10</span>)<span class="op">;</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Result from Wasm: </span><span class="sc">${</span>result<span class="sc">}</span><span class="vs">`</span>)<span class="op">;</span> <span class="co">// Outputs 15</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">runWasm</span>()<span class="op">.</span><span class="fu">catch</span>(err <span class="kw">=&gt;</span> <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(err))<span class="op">;</span></span></code></pre></div>
+<h3 id="key-api-methods">Key API Methods</h3>
+<ul>
+<li><strong><code>WebAssembly.instantiate(buffer, importObject)</code></strong>:
+This is the most common method used in Node.js. It takes a typed array
+or ArrayBuffer containing the binary code and compiles it
+asynchronously, returning both the <code>Module</code> and its
+<code>Instance</code>.</li>
+<li><strong><code>importObject</code></strong>: This optional secondary
+argument allows you to pass JavaScript functions, memory, or globals
+into the WebAssembly module, facilitating two-way communication between
+JS and Wasm.</li>
+</ul>
+<h3 id="why-run-webassembly-in-nodejs">Why Run WebAssembly in
+Node.js?</h3>
+<p>Integrating WebAssembly into your Node.js backend provides several
+distinct advantages:</p>
+<ol type="1">
+<li><strong>CPU-Intensive Tasks</strong>: Tasks like image processing,
+video encoding, cryptography, and complex mathematical calculations run
+significantly faster when compiled to WebAssembly compared to pure
+JavaScript.</li>
+<li><strong>Code Reuse</strong>: You can compile existing libraries
+written in C, C++, or Rust into Wasm and use them directly in Node.js
+without writing native C++ addons via Node-API.</li>
+<li><strong>Predictable Performance</strong>: WebAssembly bypasses the
+garbage collection cycles and dynamic JIT compilation overhead of
+JavaScript, providing consistent execution times.</li>
+</ol></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use SIMD Vector Math in WebAssembly - wasm</title>
+    <meta name="description" content="This article provides a practical guide on how to perform vector math and Single Instruction, Multiple Data (SIMD) operations in WebAssembly (Wasm). You will learn how to enable 128-bit vector operations, write SIMD code in C/C++ and Rust, compile it for">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-to-use-simd-vector-math-in-web-assembly">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Use SIMD Vector Math in WebAssembly - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-to-use-simd-vector-math-in-web-assembly" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a practical guide on how to perform vector math and Single Instruction, Multiple Data (SIMD) operations in WebAssembly (Wasm). You will learn how to enable 128-bit vector operations, write SIMD code in C/C++ and Rust, compile it for" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-to-use-simd-vector-math-in-webassembly">How to Use SIMD
+Vector Math in WebAssembly</h1>
+<p>This article provides a practical guide on how to perform vector math
+and Single Instruction, Multiple Data (SIMD) operations in WebAssembly
+(Wasm). You will learn how to enable 128-bit vector operations, write
+SIMD code in C/C++ and Rust, compile it for the web, and verify browser
+compatibility to achieve near-native performance for computational tasks
+like graphics, audio processing, and machine learning.</p>
+<h2 id="understanding-webassembly-simd">Understanding WebAssembly
+SIMD</h2>
+<p>WebAssembly SIMD (Single Instruction, Multiple Data) leverages
+128-bit vector registers to perform a single operation on multiple data
+points simultaneously. For example, a single 128-bit register
+(<code>v128</code> type) can hold and process:</p>
+<ul>
+<li>Four 32-bit floating-point numbers (<code>float32x4</code>)</li>
+<li>Four 32-bit integers (<code>int32x4</code>)</li>
+<li>Eight 16-bit integers (<code>int16x8</code>)</li>
+<li>Sixteen 8-bit integers (<code>int8x16</code>)</li>
+</ul>
+<p>Using SIMD can accelerate performance-critical mathematical
+operations, such as matrix multiplications and physics simulations, by
+up to 2x to 10x compared to scalar WebAssembly execution.</p>
+<hr />
+<h2 id="implementing-simd-in-cc-with-emscripten">Implementing SIMD in
+C/C++ with Emscripten</h2>
+<p>To use SIMD in C or C++, you must include the
+<code>&lt;wasm_simd128.h&gt;</code> header file, which provides the
+intrinsic functions mapped directly to WebAssembly instruction sets.</p>
+<h3 id="1-the-cc-code">1. The C/C++ Code</h3>
+<p>The following example demonstrates how to add two arrays of floats
+using 128-bit SIMD intrinsics:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;stdio.h&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;wasm_simd128.h&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="dt">void</span> vector_add_simd<span class="op">(</span><span class="at">const</span> <span class="dt">float</span><span class="op">*</span> a<span class="op">,</span> <span class="at">const</span> <span class="dt">float</span><span class="op">*</span> b<span class="op">,</span> <span class="dt">float</span><span class="op">*</span> out<span class="op">,</span> <span class="dt">int</span> size<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Process 4 floats at a time (128 bits / 32 bits = 4)</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> size<span class="op">;</span> i <span class="op">+=</span> <span class="dv">4</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Load 4 floats from memory into 128-bit registers</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">v128_t</span> va <span class="op">=</span> wasm_v128_load<span class="op">(&amp;</span>a<span class="op">[</span>i<span class="op">]);</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">v128_t</span> vb <span class="op">=</span> wasm_v128_load<span class="op">(&amp;</span>b<span class="op">[</span>i<span class="op">]);</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Perform parallel addition</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="dt">v128_t</span> vout <span class="op">=</span> wasm_f32x4_add<span class="op">(</span>va<span class="op">,</span> vb<span class="op">);</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Store the result back into memory</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>        wasm_v128_store<span class="op">(&amp;</span>out<span class="op">[</span>i<span class="op">],</span> vout<span class="op">);</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="2-compilation">2. Compilation</h3>
+<p>Compile the code using Emscripten. You must explicitly pass the
+<code>-msimd128</code> flag to enable SIMD code generation:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">emcc</span> main.cpp <span class="at">-o</span> main.js <span class="at">-O3</span> <span class="at">-msimd128</span></span></code></pre></div>
+<p>Using <code>-O3</code> allows the compiler to also perform
+auto-vectorization, automatically converting standard loops into SIMD
+instructions where possible.</p>
+<hr />
+<h2 id="implementing-simd-in-rust">Implementing SIMD in Rust</h2>
+<p>Rust natively supports WebAssembly SIMD through the standard
+library's <code>core::arch::wasm32</code> module.</p>
+<h3 id="1-the-rust-code">1. The Rust Code</h3>
+<p>Here is how to perform the same 4-lane float addition in Rust:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode rust"><code class="sourceCode rust"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="at">#![</span>feature<span class="at">(</span>stdsimd<span class="at">)]</span> <span class="co">// Required for certain experimental intrinsics, if applicable</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::arch::wasm32::</span><span class="op">*;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>no_mangle<span class="at">]</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> vector_add_simd(a<span class="op">:</span> <span class="op">*</span><span class="kw">const</span> <span class="dt">f32</span><span class="op">,</span> b<span class="op">:</span> <span class="op">*</span><span class="kw">const</span> <span class="dt">f32</span><span class="op">,</span> out<span class="op">:</span> <span class="op">*</span><span class="kw">mut</span> <span class="dt">f32</span><span class="op">,</span> size<span class="op">:</span> <span class="dt">usize</span>) <span class="op">{</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> <span class="kw">mut</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> i <span class="op">&lt;</span> size <span class="op">{</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Load data into v128 registers</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> va <span class="op">=</span> v128_load(a<span class="op">.</span>add(i) <span class="kw">as</span> <span class="op">*</span><span class="kw">const</span> v128)<span class="op">;</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> vb <span class="op">=</span> v128_load(b<span class="op">.</span>add(i) <span class="kw">as</span> <span class="op">*</span><span class="kw">const</span> v128)<span class="op">;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Add the vectors</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> vout <span class="op">=</span> f32x4_add(va<span class="op">,</span> vb)<span class="op">;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Store the result</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        v128_store(out<span class="op">.</span>add(i) <span class="kw">as</span> <span class="op">*</span><span class="kw">mut</span> v128<span class="op">,</span> vout)<span class="op">;</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>        i <span class="op">+=</span> <span class="dv">4</span><span class="op">;</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="2-compilation-1">2. Compilation</h3>
+<p>To compile Rust code with SIMD enabled, pass the target feature flag
+to the Rust compiler:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="va">RUSTFLAGS</span><span class="op">=</span><span class="st">&quot;-C target-feature=+simd128&quot;</span> <span class="ex">cargo</span> build <span class="at">--target</span> wasm32-unknown-unknown <span class="at">--release</span></span></code></pre></div>
+<hr />
+<h2 id="feature-detection-in-the-browser">Feature Detection in the
+Browser</h2>
+<p>Before executing WebAssembly SIMD modules, you must ensure the user's
+browser or runtime environment supports it. Modern versions of Chrome,
+Firefox, Edge, and Safari support SIMD, but a fallback is recommended
+for older clients.</p>
+<p>You can perform feature detection in JavaScript using the following
+script:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">isSimdSupported</span>() {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span> {</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        <span class="co">// A minimal WebAssembly binary containing a SIMD instruction (v128.const)</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> simdBytes <span class="op">=</span> <span class="kw">new</span> <span class="bu">Uint8Array</span>([</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>            <span class="dv">0</span><span class="op">,</span> <span class="dv">97</span><span class="op">,</span> <span class="dv">115</span><span class="op">,</span> <span class="dv">109</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">5</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">96</span><span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">3</span><span class="op">,</span> <span class="dv">2</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">10</span><span class="op">,</span> <span class="dv">9</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">7</span><span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">65</span><span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">253</span><span class="op">,</span> <span class="dv">12</span><span class="op">,</span> <span class="dv">11</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        ])<span class="op">;</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">const</span> module <span class="op">=</span> <span class="cf">await</span> WebAssembly<span class="op">.</span><span class="fu">compile</span>(simdBytes)<span class="op">;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">catch</span> (e) {</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="fu">isSimdSupported</span>()<span class="op">.</span><span class="fu">then</span>((supported) <span class="kw">=&gt;</span> {</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (supported) {</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&quot;SIMD is supported. Loading high-performance Wasm module...&quot;</span>)<span class="op">;</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Load your SIMD-enabled Wasm module</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>        <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&quot;SIMD is not supported. Loading fallback Wasm module...&quot;</span>)<span class="op">;</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Load a standard scalar Wasm module compiled without -msimd128</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

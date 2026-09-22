@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate WebAssembly Modules with Python - wasm</title>
+    <meta name="description" content="This article explains how to use Python code to generate a functioning WebAssembly (Wasm) module. It covers the core concepts of WebAssembly generation from Python, provides a complete and runnable Python script that compiles WebAssembly Text Format (WAT">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/generate-web-assembly-modules-with-python">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Generate WebAssembly Modules with Python - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/generate-web-assembly-modules-with-python" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to use Python code to generate a functioning WebAssembly (Wasm) module. It covers the core concepts of WebAssembly generation from Python, provides a complete and runnable Python script that compiles WebAssembly Text Format (WAT" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="generate-webassembly-modules-with-python">Generate WebAssembly
+Modules with Python</h1>
+<p>This article explains how to use Python code to generate a
+functioning WebAssembly (Wasm) module. It covers the core concepts of
+WebAssembly generation from Python, provides a complete and runnable
+Python script that compiles WebAssembly Text Format (WAT) into a binary
+<code>.wasm</code> file, and demonstrates how to execute the resulting
+module.</p>
+<hr />
+<h2 id="can-python-generate-wasm-modules">Can Python Generate Wasm
+Modules?</h2>
+<p>Yes, Python can be used to generate functioning WebAssembly modules.
+While Python itself is an interpreted language, developers can utilize
+Python libraries to compile WebAssembly Text Format (WAT) or lower-level
+representations directly into <code>.wasm</code> binary files.</p>
+<p>One of the most effective tools for this task is
+<strong>PPCI</strong> (Python Compiler Infrastructure), a compiler
+written entirely in Python. PPCI includes support for WebAssembly,
+allowing you to assemble WAT code into a valid Wasm binary directly from
+a Python script.</p>
+<hr />
+<h2 id="step-by-step-guide-to-generating-wasm-with-python">Step-by-Step
+Guide to Generating Wasm with Python</h2>
+<p>To generate a Wasm module, you need to write WebAssembly instructions
+(usually in text format) and use Python to compile and save them as a
+binary file.</p>
+<h3 id="1-install-the-required-library">1. Install the Required
+Library</h3>
+<p>First, install the Python Compiler Infrastructure (<code>ppci</code>)
+package using pip:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install ppci</span></code></pre></div>
+<h3 id="2-python-code-to-generate-the-wasm-file">2. Python Code to
+Generate the Wasm File</h3>
+<p>The following Python script defines a simple addition function in
+WebAssembly Text format, compiles it into binary WebAssembly, and writes
+it to a file named <code>add.wasm</code>.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> ppci.api <span class="im">import</span> wat2wasm</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the WebAssembly Text (WAT) code</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>wat_code <span class="op">=</span> <span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">(module</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="st">  (func $add (param $lhs i32) (param $rhs i32) (result i32)</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="st">    local.get $lhs</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="st">    local.get $rhs</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="st">    i32.add)</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="st">  (export &quot;add&quot; (func $add))</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="st">)</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;&quot;&quot;</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> generate_wasm():</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Compile WAT string to binary WASM bytes</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        wasm_bytes <span class="op">=</span> wat2wasm(wat_code)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Save the binary bytes to a file</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> <span class="bu">open</span>(<span class="st">&quot;add.wasm&quot;</span>, <span class="st">&quot;wb&quot;</span>) <span class="im">as</span> f:</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>            f.write(wasm_bytes)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">&quot;Success: &#39;add.wasm&#39; module generated successfully!&quot;</span>)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> <span class="pp">Exception</span> <span class="im">as</span> e:</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f&quot;Error generating WASM module: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">&quot;__main__&quot;</span>:</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    generate_wasm()</span></code></pre></div>
+<hr />
+<h2 id="running-the-generated-wasm-module">Running the Generated Wasm
+Module</h2>
+<p>Once Python has generated the <code>add.wasm</code> file, you can run
+it in any Wasm runtime, such as a web browser or a Node.js
+environment.</p>
+<h3 id="executing-in-javascript">Executing in JavaScript</h3>
+<p>You can load and run your Python-generated Wasm module in a browser
+or Node.js using the following JavaScript code:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> fs <span class="op">=</span> <span class="pp">require</span>(<span class="st">&#39;fs&#39;</span>)<span class="op">;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">// Load the generated WASM binary</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> wasmBuffer <span class="op">=</span> fs<span class="op">.</span><span class="fu">readFileSync</span>(<span class="st">&#39;add.wasm&#39;</span>)<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>WebAssembly<span class="op">.</span><span class="fu">instantiate</span>(wasmBuffer)<span class="op">.</span><span class="fu">then</span>(wasmModule <span class="kw">=&gt;</span> {</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Access the exported &#39;add&#39; function</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> add <span class="op">=</span> wasmModule<span class="op">.</span><span class="at">instance</span><span class="op">.</span><span class="at">exports</span><span class="op">.</span><span class="at">add</span><span class="op">;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Execute the function</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> result <span class="op">=</span> <span class="fu">add</span>(<span class="dv">10</span><span class="op">,</span> <span class="dv">15</span>)<span class="op">;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Result of 10 + 15: </span><span class="sc">${</span>result<span class="sc">}</span><span class="vs">`</span>)<span class="op">;</span> <span class="co">// Outputs: 25</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<hr />
+<h2 id="alternative-approaches">Alternative Approaches</h2>
+<p>If you want to compile standard Python code into WebAssembly rather
+than writing WAT code, you can use these alternative toolchains:</p>
+<ul>
+<li><strong>Pyodide:</strong> Port of CPython to WebAssembly, allowing
+you to run full Python packages directly inside the browser.</li>
+<li><strong>MicroPython (Wasm Port):</strong> A lightweight
+implementation of Python 3 optimized to run on microcontrollers,
+compiled to target WebAssembly for minimal file sizes.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

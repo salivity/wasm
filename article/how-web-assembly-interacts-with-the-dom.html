@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How WebAssembly Interacts with the DOM - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) is designed to run high-performance code on the web, but it cannot access the Document Object Model (DOM) directly. Instead, WebAssembly must interact with the DOM indirectly by communicating with JavaScript, which acts as a bridge. Th">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-web-assembly-interacts-with-the-dom">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How WebAssembly Interacts with the DOM - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-web-assembly-interacts-with-the-dom" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) is designed to run high-performance code on the web, but it cannot access the Document Object Model (DOM) directly. Instead, WebAssembly must interact with the DOM indirectly by communicating with JavaScript, which acts as a bridge. Th" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-webassembly-interacts-with-the-dom">How WebAssembly
+Interacts with the DOM</h1>
+<p>WebAssembly (Wasm) is designed to run high-performance code on the
+web, but it cannot access the Document Object Model (DOM) directly.
+Instead, WebAssembly must interact with the DOM indirectly by
+communicating with JavaScript, which acts as a bridge. This article
+explains how this interaction works, the role of linear memory, and how
+modern tooling automates the communication between WebAssembly and
+JavaScript to manipulate web pages.</p>
+<h2 id="the-direct-access-limitation">The Direct Access Limitation</h2>
+<p>WebAssembly operates in a sandboxed execution environment with a
+strict security model and a limited instruction set. Currently, Wasm
+only understands basic numeric data types, such as integers and
+floating-point numbers. It does not have native access to Web APIs, the
+DOM, or the window object.</p>
+<p>Because of this limitation, any action that requires DOM
+manipulation—such as changing text, handling button clicks, or creating
+elements—must be routed through JavaScript.</p>
+<h2 id="the-javascript-bridge">The JavaScript Bridge</h2>
+<p>To interact with the DOM, WebAssembly and JavaScript must work
+together. The process relies on imports and exports defined during the
+WebAssembly module's compilation and instantiation:</p>
+<ol type="1">
+<li><strong>Imports (JS to Wasm):</strong> JavaScript functions that
+manipulate the DOM can be passed (imported) into the WebAssembly module.
+When the Wasm code needs to update the DOM, it calls these imported
+JavaScript functions.</li>
+<li><strong>Exports (Wasm to JS):</strong> WebAssembly functions are
+exported to JavaScript. JavaScript can call these functions in response
+to DOM events, such as a user clicking a button.</li>
+</ol>
+<p>For example, when a user clicks a button, a JavaScript event listener
+triggers an exported Wasm function to perform a heavy calculation. Once
+the calculation is complete, Wasm calls an imported JavaScript function
+to update the DOM with the result.</p>
+<h2 id="passing-data-via-linear-memory">Passing Data via Linear
+Memory</h2>
+<p>Because WebAssembly only understands numbers, passing complex data
+types like strings, objects, or arrays to the DOM requires a process
+called marshalling.</p>
+<p>WebAssembly uses a flat, contiguous array of raw bytes called
+<strong>Linear Memory</strong>, which is shared with JavaScript. To pass
+a string from Wasm to the DOM:</p>
+<ol type="1">
+<li>Wasm writes the string's character data into its linear memory.</li>
+<li>Wasm passes the memory address (pointer) and the length of the
+string to JavaScript.</li>
+<li>JavaScript reads the character data from the shared memory buffer,
+decodes it into a JavaScript string, and inserts it into the DOM.</li>
+</ol>
+<h2 id="modern-tooling-automating-the-interaction">Modern Tooling:
+Automating the Interaction</h2>
+<p>Writing manual glue code to pass pointers and decode memory is
+tedious and error-prone. Consequently, developers use compiler tools to
+automate this process:</p>
+<ul>
+<li><strong>wasm-bindgen (Rust):</strong> This tool automatically
+generates the necessary JavaScript and Rust bindings. It allows Rust
+developers to write code that looks like direct DOM manipulation,
+automatically handling the memory translation under the hood.</li>
+<li><strong>Emscripten (C/C++):</strong> Emscripten provides built-in
+libraries that emulate standard APIs (like SDL or OpenGL) and generates
+the JavaScript glue code required to render C++ applications directly to
+an HTML5 Canvas.</li>
+</ul>
+<h2 id="the-future-direct-dom-access">The Future: Direct DOM Access</h2>
+<p>The WebAssembly community is actively working on proposals to allow
+direct DOM integration. The introduction of <strong>WebAssembly Garbage
+Collection (WasmGC)</strong> and the <strong>Interface Types</strong>
+proposal aim to allow Wasm to reference and manipulate high-level
+JavaScript objects and DOM nodes directly, bypassing the need for
+JavaScript glue code and significantly improving performance.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

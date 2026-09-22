@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Versioning and Updating Deployed Wasm Modules - wasm</title>
+    <meta name="description" content="This article provides a comprehensive guide on the standard procedures for versioning and updating deployed WebAssembly (Wasm) modules. It covers how to implement semantic versioning, manage module registries, execute seamless runtime updates, and preser">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/versioning-and-updating-deployed-wasm-modules">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Versioning and Updating Deployed Wasm Modules - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/versioning-and-updating-deployed-wasm-modules" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article provides a comprehensive guide on the standard procedures for versioning and updating deployed WebAssembly (Wasm) modules. It covers how to implement semantic versioning, manage module registries, execute seamless runtime updates, and preser" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="versioning-and-updating-deployed-wasm-modules">Versioning and
+Updating Deployed Wasm Modules</h1>
+<p>This article provides a comprehensive guide on the standard
+procedures for versioning and updating deployed WebAssembly (Wasm)
+modules. It covers how to implement semantic versioning, manage module
+registries, execute seamless runtime updates, and preserve application
+state during a module transition.</p>
+<h2 id="semantic-versioning-and-module-metadata">Semantic Versioning and
+Module Metadata</h2>
+<p>The foundation of managing WebAssembly modules is a robust versioning
+scheme. The industry standard is <strong>Semantic Versioning
+(SemVer)</strong> (MAJOR.MINOR.PATCH).</p>
+<ul>
+<li><strong>MAJOR</strong> version changes indicate breaking changes in
+the module’s exported functions or expected host imports (ABI
+changes).</li>
+<li><strong>MINOR</strong> version changes add functionality in a
+backward-compatible manner.</li>
+<li><strong>PATCH</strong> version changes introduce backward-compatible
+bug fixes.</li>
+</ul>
+<p>To enforce this, version metadata should be embedded directly into
+the Wasm binary using custom sections (such as a custom
+<code>metadata</code> or <code>version</code> section) or defined in the
+module's interface definition file, such as WebAssembly Interface Type
+(WIT) files under the WebAssembly Component Model.</p>
+<h2 id="distribution-and-content-addressable-storage">Distribution and
+Content-Addressable Storage</h2>
+<p>For reliable updates, Wasm modules should be stored and distributed
+using <strong>Content-Addressable Storage (CAS)</strong>.</p>
+<ul>
+<li><strong>Hash-Based Addressing:</strong> Every compiled Wasm module
+is assigned a unique cryptographic hash (usually SHA-256). This hash
+acts as an immutable identifier for that specific build.</li>
+<li><strong>Registries:</strong> Deploy modules to a registry, such as
+an OCI (Open Container Initiative) registry or Wasm-specific registries
+like Warg. These registries map human-readable names and SemVer tags to
+the underlying immutable content hash.</li>
+</ul>
+<h2 id="the-update-procedure-orchestrating-the-swap">The Update
+Procedure: Orchestrating the Swap</h2>
+<p>Updating a deployed Wasm module in a running host environment (like a
+web browser or edge server) involves fetching, compiling, and swapping
+the module instance.</p>
+<h3 id="1-fetching-and-compiling">1. Fetching and Compiling</h3>
+<p>The host application polls a registry or receives a push notification
+about a new version. The host fetches the new binary using its content
+hash and compiles it asynchronously—using APIs like
+<code>WebAssembly.compileStreaming</code> in JavaScript—to avoid
+blocking the main execution thread.</p>
+<h3 id="2-state-preservation-and-migration">2. State Preservation and
+Migration</h3>
+<p>Because WebAssembly modules are stateful (containing their own linear
+memory), simply swapping a module will reset its internal state. To
+update a module without losing data, you must implement a state
+migration strategy:</p>
+<ul>
+<li><strong>Externalized State:</strong> Design the Wasm module to be
+stateless, storing all persistent data in the host environment or an
+external database.</li>
+<li><strong>Serialization and Deserialization:</strong> If internal
+state must be preserved, the old module must export a serialization
+function (e.g., <code>save_state() -&gt; Vec&lt;u8&gt;</code>) to dump
+its memory. The new module must then import this data via a
+deserialization function (e.g.,
+<code>load_state(data: Vec&lt;u8&gt;)</code>) upon instantiation.</li>
+</ul>
+<h3 id="3-graceful-instance-swapping-hot-swapping">3. Graceful Instance
+Swapping (Hot Swapping)</h3>
+<p>Once the new module is compiled and its state is prepared, the host
+performs the swap:</p>
+<ul>
+<li>Pause incoming requests or events destined for the module.</li>
+<li>Extract the state from the active module instance (if
+stateful).</li>
+<li>Instantiate the new Wasm module, passing the extracted state.</li>
+<li>Update the host's reference pointer to point to the exports of the
+new instance.</li>
+<li>Resume processing and safely garbage-collect the old instance.</li>
+</ul>
+<h2 id="ensuring-compatibility-via-the-component-model">Ensuring
+Compatibility via the Component Model</h2>
+<p>To prevent runtime crashes during updates, the host and the Wasm
+module must agree on a strict interface. Utilizing the
+<strong>WebAssembly Component Model</strong> and <strong>WIT
+(WebAssembly Interface Types)</strong> allows you to define clear import
+and export boundaries. By validating the new module's WIT interface
+against the host's expected interface before instantiation, you can
+guarantee that the update will not break the host application at
+runtime.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

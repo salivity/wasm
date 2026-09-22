@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Reduce WebAssembly WASM Binary Size - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) enables high-performance applications on the web, but large binary sizes can lead to slow download times and poor user experiences. This article provides a practical, straight-to-the-point guide on how to optimize your Wasm binaries fo">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-to-reduce-web-assembly-wasm-binary-size">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Reduce WebAssembly WASM Binary Size - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-to-reduce-web-assembly-wasm-binary-size" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) enables high-performance applications on the web, but large binary sizes can lead to slow download times and poor user experiences. This article provides a practical, straight-to-the-point guide on how to optimize your Wasm binaries fo" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-to-reduce-webassembly-wasm-binary-size">How to Reduce
+WebAssembly WASM Binary Size</h1>
+<p>WebAssembly (Wasm) enables high-performance applications on the web,
+but large binary sizes can lead to slow download times and poor user
+experiences. This article provides a practical, straight-to-the-point
+guide on how to optimize your Wasm binaries for minimal file size. You
+will learn about compiler configuration flags, symbol stripping,
+specialized optimization tools, and asset compression techniques.</p>
+<h2 id="1-optimize-compiler-settings">1. Optimize Compiler Settings</h2>
+<p>The first step in reducing Wasm binary size starts at compilation.
+Most languages that compile to WebAssembly offer optimization flags
+specifically designed to minimize code size.</p>
+<ul>
+<li><strong>Optimize for Size:</strong> Instead of optimizing for raw
+execution speed, instruct your compiler to prioritize size.
+<ul>
+<li>For Rust, add <code>opt-level = "z"</code> (aggressive size
+optimization) or <code>opt-level = "s"</code> (general size
+optimization) to your <code>Cargo.toml</code> profile.</li>
+<li>For C/C++ (Emscripten), compile using the <code>-Oz</code> or
+<code>-Os</code> flags.</li>
+</ul></li>
+<li><strong>Enable Link-Time Optimization (LTO):</strong> LTO performs
+optimizations across all translation units, allowing the compiler to
+inline functions and discard unused code more aggressively. In Rust,
+enable this with <code>lto = true</code>.</li>
+<li><strong>Limit Panic Infrastructure:</strong> In Rust, configuring
+your build to abort on panic (<code>panic = "abort"</code>) removes a
+significant amount of formatting and unwinding code, shrinking the
+binary.</li>
+</ul>
+<h2 id="2-strip-debug-symbols">2. Strip Debug Symbols</h2>
+<p>By default, compilers often include debug symbols and name sections
+in the compiled Wasm binary. While helpful for debugging, they are
+unnecessary for production and can make up a large percentage of the
+file size.</p>
+<ul>
+<li><strong>Cargo Configuration:</strong> In Rust, you can automatically
+strip symbols by adding <code>strip = true</code> under your release
+profile.</li>
+<li><strong>Wasm-Strip:</strong> If your compiler does not strip symbols
+automatically, you can use the <code>wasm-strip</code> tool (part of the
+WebAssembly Binary Toolkit, or WABT) to manually remove debug
+information and third-party custom sections from an existing
+<code>.wasm</code> file:
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">wasm-strip</span> output.wasm</span></code></pre></div></li>
+</ul>
+<h2 id="3-run-wasm-opt">3. Run wasm-opt</h2>
+<p><code>wasm-opt</code> is a highly effective command-line tool from
+the Binaryen toolkit. It analyzes the WebAssembly bytecode and applies
+Wasm-specific optimization passes that general-purpose compilers might
+miss.</p>
+<p>To run <code>wasm-opt</code> on your binary, use the following
+command:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">wasm-opt</span> <span class="at">-Oz</span> <span class="at">--strip-debug</span> input.wasm <span class="at">-o</span> optimized.wasm</span></code></pre></div>
+<p>The <code>-Oz</code> flag instructs the tool to execute aggressive
+size-reduction passes, while <code>--strip-debug</code> ensures all
+remaining debug information is discarded.</p>
+<h2 id="4-reduce-import-and-library-bloat">4. Reduce Import and Library
+Bloat</h2>
+<p>The code you write is often only a fraction of the final binary;
+third-party libraries and standard library components can introduce
+significant bloat.</p>
+<ul>
+<li><strong>Avoid Heavy Dependencies:</strong> Be selective with the
+libraries you import. Avoid packages that pull in large transitive
+dependencies.</li>
+<li><strong>Disable Unused Features:</strong> Many packages allow you to
+toggle features. Disable default features that your application does not
+actively use.</li>
+<li><strong>Minimize String Formatting:</strong> Functions like
+<code>printf</code> in C or <code>std::fmt</code> in Rust pull in heavy
+string formatting machinery. Minimize the use of complex string
+formatting inside your Wasm code.</li>
+</ul>
+<h2 id="5-compress-the-output">5. Compress the Output</h2>
+<p>Because WebAssembly is a binary format with a highly repetitive
+structure, it compresses exceptionally well. Compression does not change
+the compiled file itself, but it drastically reduces the transfer size
+over the network.</p>
+<ul>
+<li><strong>Brotli:</strong> This is the most effective compression
+algorithm for Wasm files, often reducing file size by 70% or more.
+Ensure your web server is configured to serve <code>.wasm</code> files
+compressed with Brotli (<code>.wasm.br</code>).</li>
+<li><strong>Gzip:</strong> If Brotli is not supported by your hosting
+provider, Gzip is a reliable alternative that still offers substantial
+size reduction.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fetch API and Streaming WebAssembly Compilation - wasm</title>
+    <meta name="description" content="This article explores how the Fetch API integrates with streaming WebAssembly (Wasm) compilation to optimize web application performance. By combining fetch() with WebAssembly's streaming APIs, developers can compile and instantiate Wasm modules in the b">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/fetch-api-and-streaming-web-assembly-compilation">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Fetch API and Streaming WebAssembly Compilation - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/fetch-api-and-streaming-web-assembly-compilation" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores how the Fetch API integrates with streaming WebAssembly (Wasm) compilation to optimize web application performance. By combining fetch() with WebAssembly's streaming APIs, developers can compile and instantiate Wasm modules in the b" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="fetch-api-and-streaming-webassembly-compilation">Fetch API and
+Streaming WebAssembly Compilation</h1>
+<p>This article explores how the Fetch API integrates with streaming
+WebAssembly (Wasm) compilation to optimize web application performance.
+By combining <code>fetch()</code> with WebAssembly's streaming APIs,
+developers can compile and instantiate Wasm modules in the background
+while the bytecode is still downloading. This parallel processing
+significantly reduces startup times, bypasses the need to load the
+entire file into memory, and improves the overall responsiveness of web
+applications.</p>
+<h2 id="the-synergy-between-fetch-and-webassembly">The Synergy Between
+Fetch and WebAssembly</h2>
+<p>Traditionally, executing a WebAssembly module required a multi-step,
+sequential process: fetching the entire <code>.wasm</code> binary over
+the network, converting the response into an <code>ArrayBuffer</code>,
+and then compiling and instantiating it. This approach forced the
+browser to wait until the network request was fully completed before any
+compilation could begin.</p>
+<p>The integration of the Fetch API with WebAssembly's streaming
+APIs—specifically <code>WebAssembly.compileStreaming</code> and
+<code>WebAssembly.instantiateStreaming</code>—redefines this pipeline.
+The Fetch API's <code>fetch()</code> function returns a
+<code>Response</code> object, which represents the network stream.
+Because WebAssembly's streaming methods accept this
+<code>Response</code> object (or a Promise that resolves to one)
+directly, the browser can compile the code in real-time as individual
+network packets arrive.</p>
+<h2 id="how-the-streaming-pipeline-works">How the Streaming Pipeline
+Works</h2>
+<ol type="1">
+<li><strong>Initiating the Fetch Request:</strong> The process begins
+with a standard <code>fetch()</code> call to retrieve the
+<code>.wasm</code> file.</li>
+<li><strong>Passing the Response Stream:</strong> Instead of waiting for
+the download to finish, the resulting <code>Response</code> stream is
+passed immediately into
+<code>WebAssembly.instantiateStreaming()</code>.</li>
+<li><strong>Parallel Compilation and Downloading:</strong> The browser's
+WebAssembly engine compiles the received chunks of bytecode in a
+background thread while the remainder of the file is still transferring
+over the network.</li>
+<li><strong>Instant Execution:</strong> Once the final packet is
+downloaded and compiled, the module is instantiated immediately, making
+its exported functions available for use.</li>
+</ol>
+<h2 id="implementation-example">Implementation Example</h2>
+<p>The code required to implement streaming compilation is highly
+concise. The following example demonstrates how to fetch, compile, and
+instantiate a Wasm module in a single step:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Start the fetch request and pass the Promise directly to the streaming API</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>WebAssembly<span class="op">.</span><span class="fu">instantiateStreaming</span>(<span class="fu">fetch</span>(<span class="st">&#39;module.wasm&#39;</span>))</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">.</span><span class="fu">then</span>(result <span class="kw">=&gt;</span> {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Access the compiled module and its instance</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> { module<span class="op">,</span> instance } <span class="op">=</span> result<span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Call an exported WebAssembly function</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    instance<span class="op">.</span><span class="at">exports</span><span class="op">.</span><span class="fu">myWasmFunction</span>()<span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="op">.</span><span class="fu">catch</span>(error <span class="kw">=&gt;</span> {</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(<span class="st">&#39;Error loading or compiling WebAssembly:&#39;</span><span class="op">,</span> error)<span class="op">;</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span></code></pre></div>
+<h2 id="crucial-requirements-for-streaming">Crucial Requirements for
+Streaming</h2>
+<p>For the Fetch API and WebAssembly streaming to work together
+successfully, two conditions must be met:</p>
+<ul>
+<li><strong>Correct MIME Type:</strong> The server hosting the
+<code>.wasm</code> file must return the response with the HTTP header
+<code>Content-Type: application/wasm</code>. If this MIME type is
+incorrect, the streaming API will reject the promise and fallback to a
+non-streaming compilation path, or fail entirely.</li>
+<li><strong>CORS Configuration:</strong> If the Wasm file is hosted on a
+different origin, proper Cross-Origin Resource Sharing (CORS) headers
+must be configured so the Fetch API can read the response body.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

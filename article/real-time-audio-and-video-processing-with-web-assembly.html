@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Audio and Video Processing with WebAssembly - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) is highly capable of processing audio and video streams in real-time. By compiling low-level languages like C++, Rust, or Go into a binary format that runs at near-native speed in the browser, WebAssembly bypasses the performance limit">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/real-time-audio-and-video-processing-with-web-assembly">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Real-Time Audio and Video Processing with WebAssembly - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/real-time-audio-and-video-processing-with-web-assembly" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) is highly capable of processing audio and video streams in real-time. By compiling low-level languages like C++, Rust, or Go into a binary format that runs at near-native speed in the browser, WebAssembly bypasses the performance limit" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="real-time-audio-and-video-processing-with-webassembly">Real-Time
+Audio and Video Processing with WebAssembly</h1>
+<p>WebAssembly (Wasm) is highly capable of processing audio and video
+streams in real-time. By compiling low-level languages like C++, Rust,
+or Go into a binary format that runs at near-native speed in the
+browser, WebAssembly bypasses the performance limitations of JavaScript.
+This article explains how WebAssembly achieves real-time multimedia
+processing, the key browser APIs it integrates with, and the practical
+workflows used to build high-performance media applications.</p>
+<h2 id="why-use-webassembly-for-media-processing">Why Use WebAssembly
+for Media Processing?</h2>
+<p>Real-time audio and video processing are computationally expensive
+operations. For video, a standard 1080p stream at 30 frames per second
+requires processing over 60 million pixels every second. For audio,
+digital signal processing (DSP) requires managing continuous buffers of
+data at sample rates of 44.1 kHz or higher with sub-millisecond
+latency.</p>
+<p>While JavaScript is highly optimized for standard web tasks, its
+garbage collection, dynamic typing, and single-threaded nature make it
+prone to latency spikes and frame drops when handling heavy
+math-intensive workloads. WebAssembly solves this by offering:</p>
+<ul>
+<li><strong>Predictable performance:</strong> No garbage collection
+pauses.</li>
+<li><strong>SIMD (Single Instruction, Multiple Data) support:</strong>
+Allows processing multiple data points (like color channels or audio
+samples) simultaneously.</li>
+<li><strong>Multi-threading:</strong> Leverages Web Workers and
+SharedArrayBuffer for parallel processing.</li>
+</ul>
+<h2 id="real-time-audio-processing-with-web-audio-api">Real-Time Audio
+Processing with Web Audio API</h2>
+<p>To process audio in real-time, WebAssembly is paired with the Web
+Audio API, specifically using <strong>AudioWorklets</strong>.</p>
+<p>An AudioWorklet runs in a separate, high-priority audio rendering
+thread, completely isolated from the browser's main UI thread. Inside
+this worklet, a WebAssembly module is loaded to handle the heavy
+math.</p>
+<ol type="1">
+<li><strong>Input:</strong> The browser captures audio from a microphone
+via <code>getUserMedia</code> or reads from an audio file.</li>
+<li><strong>Transfer:</strong> The audio stream is passed to the
+AudioWorklet as a series of raw PCM float arrays.</li>
+<li><strong>Wasm Processing:</strong> The WebAssembly module processes
+these arrays directly in its linear memory (e.g., applying equalization,
+noise cancellation, or reverb).</li>
+<li><strong>Output:</strong> The processed audio is sent back to the
+audio context to be played through the speakers or streamed over the
+network.</li>
+</ol>
+<p>This architecture ensures glitch-free, low-latency audio processing
+even when the main website UI is busy.</p>
+<h2 id="real-time-video-processing-with-webcodecs-and-canvas">Real-Time
+Video Processing with WebCodecs and Canvas</h2>
+<p>Video processing follows a similar pipeline but relies on the
+<strong>WebCodecs API</strong>, <strong>WebRTC</strong>, and the
+<strong>HTML5 Canvas</strong>.</p>
+<p>To process a live video stream (e.g., a webcam feed):</p>
+<ol type="1">
+<li><strong>Frame Capture:</strong> The application grabs video frames
+using the <code>MediaStreamTrackProcessor</code> (part of the insertable
+streams API) or by drawing video frames onto an offscreen canvas.</li>
+<li><strong>Memory Transfer:</strong> The raw pixel data (typically in
+RGBA or YUV format) is copied into the WebAssembly module’s shared
+memory.</li>
+<li><strong>Wasm Execution:</strong> The Wasm module executes complex
+algorithms—such as background blur, green-screen chroma keying, object
+detection, or custom video filters.</li>
+<li><strong>Rendering:</strong> The processed pixel data is written back
+to the canvas or wrapped in a new <code>VideoFrame</code> object to be
+sent over a WebRTC connection.</li>
+</ol>
+<p>Because WebAssembly compiled from C++ or Rust can utilize highly
+optimized libraries like OpenCV or FFmpeg, web developers can run
+desktop-grade video effects directly inside the browser.</p>
+<h2 id="overcoming-performance-bottlenecks">Overcoming Performance
+Bottlenecks</h2>
+<p>While WebAssembly is incredibly fast, developers must optimize the
+boundary between JavaScript and Wasm to maintain real-time speeds:</p>
+<ul>
+<li><strong>Minimize Data Copying:</strong> Copying large video frames
+back and forth between JavaScript and WebAssembly memory introduces
+overhead. Developers use pointer-based sharing, where JavaScript writes
+data directly into the Wasm memory space (heap) to avoid redundant
+copies.</li>
+<li><strong>Utilize Web Workers:</strong> All video decoding,
+processing, and encoding should occur on background Web Workers to keep
+the main thread free for UI rendering.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

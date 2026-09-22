@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAssembly Exception Handling and Error Routing - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) handles exceptions and error routing through a combination of native WebAssembly instruction sets, language-specific runtimes, and integration with the host environment, such as JavaScript or a WebAssembly System Interface (WASI) runti">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/web-assembly-exception-handling-and-error-routing">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="WebAssembly Exception Handling and Error Routing - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/web-assembly-exception-handling-and-error-routing" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) handles exceptions and error routing through a combination of native WebAssembly instruction sets, language-specific runtimes, and integration with the host environment, such as JavaScript or a WebAssembly System Interface (WASI) runti" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="webassembly-exception-handling-and-error-routing">WebAssembly
+Exception Handling and Error Routing</h1>
+<p>WebAssembly (Wasm) handles exceptions and error routing through a
+combination of native WebAssembly instruction sets, language-specific
+runtimes, and integration with the host environment, such as JavaScript
+or a WebAssembly System Interface (WASI) runtime. This article explores
+how modern WebAssembly manages runtime errors, propagates exceptions
+across the Wasm-host boundary, and routes errors effectively to maintain
+application stability.</p>
+<h2 id="the-webassembly-exception-handling-proposal">The WebAssembly
+Exception Handling Proposal</h2>
+<p>Historically, WebAssembly lacked native exception handling, requiring
+compilers (like Emscripten) to emulate try-catch blocks using JavaScript
+glue code. This approach incurred a significant performance penalty.</p>
+<p>Today, the standardized <strong>WebAssembly Exception Handling
+Proposal</strong> introduces native instructions to handle exceptions
+directly inside the Wasm engine. This specification introduces several
+key concepts:</p>
+<ul>
+<li><strong>Tags:</strong> A new metadata section in the Wasm module
+that defines the type and structure of data carried by an
+exception.</li>
+<li><strong><code>throw</code>:</strong> An instruction that generates
+an exception using a specified tag and pushes it onto the stack.</li>
+<li><strong><code>try-catch</code> blocks:</strong> Structured control
+flow blocks. If an instruction inside a <code>try</code> block throws an
+exception that matches a specified tag in the <code>catch</code> block,
+execution jumps to the handler.</li>
+<li><strong><code>rethrow</code>:</strong> An instruction used inside a
+catch block to propagate the caught exception further up the call
+stack.</li>
+</ul>
+<p>These native instructions allow languages like C++ and Rust to
+compile their native exception-handling routines (such as
+<code>try</code>, <code>catch</code>, and <code>throw</code> in C++)
+directly into efficient Wasm instructions.</p>
+<h2 id="error-routing-across-the-boundary">Error Routing Across the
+Boundary</h2>
+<p>Because WebAssembly usually runs inside a host environment, routing
+errors between Wasm and the host is critical.</p>
+<h3 id="webassembly-to-javascript-host">WebAssembly to JavaScript
+(Host)</h3>
+<p>When a native Wasm exception is thrown and not caught inside the Wasm
+module, it propagates to the host environment. In a browser or Node.js,
+this manifests as a JavaScript error.</p>
+<p>With the native exception handling API, JavaScript can catch these
+exceptions as instances of <code>WebAssembly.Exception</code>. JS can
+query the exception using the matching tag to extract payload data:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span> {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  wasmInstance<span class="op">.</span><span class="at">exports</span><span class="op">.</span><span class="fu">riskyFunction</span>()<span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>} <span class="cf">catch</span> (e) {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (e <span class="kw">instanceof</span> WebAssembly<span class="op">.</span><span class="at">Exception</span>) {</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Route and process the native Wasm exception</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> payload <span class="op">=</span> e<span class="op">.</span><span class="fu">getArg</span>(wasmTag<span class="op">,</span> <span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(<span class="st">&quot;Wasm Error Payload:&quot;</span><span class="op">,</span> payload)<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">console</span><span class="op">.</span><span class="fu">error</span>(<span class="st">&quot;Standard JS Error:&quot;</span><span class="op">,</span> e)<span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h3 id="javascript-to-webassembly">JavaScript to WebAssembly</h3>
+<p>Conversely, if JavaScript calls a Wasm function and an error occurs
+inside a JS-imported function called by Wasm, the JS exception
+propagates into the Wasm module. If the Wasm module has a
+<code>catch_all</code> block, it can intercept the JS exception, perform
+cleanup, and either handle it or rethrow it.</p>
+<h2 id="language-specific-implementation-strategies">Language-Specific
+Implementation Strategies</h2>
+<p>Different compilation toolchains handle exceptions differently based
+on performance and target requirements:</p>
+<h3 id="1-rust-panic-to-abort-vs-unwinding">1. Rust (Panic-to-Abort vs.
+Unwinding)</h3>
+<p>Rust web applications typically use one of two strategies:</p>
+<ul>
+<li><strong>Panic-to-Abort (Default):</strong> In
+<code>wasm32-unknown-unknown</code>, Rust panics are compiled to aborts.
+The module immediately halts execution, and the host receives a generic
+"RuntimeError: unreachable executed" trap.</li>
+<li><strong>Unwinding:</strong> Using the experimental native
+exception-handling target, Rust can unwind the stack using Wasm
+exceptions, allowing standard <code>std::panic::catch_unwind</code> to
+capture and route panic payloads safely without crashing the host.</li>
+</ul>
+<h3 id="2-c-emscripten">2. C++ (Emscripten)</h3>
+<p>Emscripten allows developers to choose how exceptions are
+compiled:</p>
+<ul>
+<li><code>-fexceptions</code>: Emulates C++ exceptions using JavaScript.
+This is highly compatible but slow.</li>
+<li><code>-fwasm-exceptions</code>: Compiles C++ exceptions directly to
+native WebAssembly exception handling instructions, offering near-native
+performance.</li>
+</ul>
+<h2 id="best-practices-for-error-routing">Best Practices for Error
+Routing</h2>
+<p>To maintain clean and performant error routing in WebAssembly
+applications, observe the following practices:</p>
+<ul>
+<li><strong>Use Result Enums for Expected Errors:</strong> Reserve
+actual exceptions for unexpected, exceptional runtime failures (e.g.,
+out-of-memory). For expected failures (e.g., validation errors,
+file-not-found), return a status code or a serialized representation of
+a <code>Result</code> type across the boundary. This avoids the overhead
+of stack unwinding.</li>
+<li><strong>Define Clear Tag Interfaces:</strong> When using native
+exceptions, define distinct Wasm tags for different error categories so
+the host environment can route them to the correct logging or UI warning
+systems.</li>
+<li><strong>Always Implement a Global Trap Handler:</strong> In the host
+environment, always wrap WebAssembly entry-point calls in a try-catch
+block to prevent unhandled traps from crashing the entire host
+application.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

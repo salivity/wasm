@@ -1,0 +1,602 @@
+[
+  [
+    100,
+    "The Future of WebAssembly in Software Engineering",
+    "WebAssembly (Wasm) is evolving far beyond its original browser-based origins to become a foundational technology for the next generation of software architecture. This article explores the ultimate long-term vision for the Wasm ecosystem, detailing how i",
+    false
+  ],
+  [
+    99,
+    "Can You Compile Swift to WebAssembly?",
+    "Yes, you can compile Swift code into a functional WebAssembly (WASM) binary for web use. Thanks to the SwiftWasm community project and official Swift compiler support, developers can build web applications using Swift. This article covers how Swift-to-WA",
+    false
+  ],
+  [
+    98,
+    "How Wasm Lack of Native DOM Affects UI Development",
+    "WebAssembly (Wasm) offers near-native execution speed in the browser, yet it cannot directly access the Document Object Model (DOM). This article explores how the lack of a native DOM API inside Wasm forces developers to rely on JavaScript bridge systems",
+    false
+  ],
+  [
+    97,
+    "Running WebAssembly on Microcontrollers Using Wasm3",
+    "This article explores the role of Wasm3, a highly optimized WebAssembly (Wasm) interpreter designed specifically for resource-constrained hardware. It explains how Wasm3 enables developers to run safe, portable, and high-performance WebAssembly code on m",
+    false
+  ],
+  [
+    96,
+    "How to Build and Test WebAssembly in CI",
+    "Automating the build and test process for WebAssembly (Wasm) ensures code reliability and accelerates development. This guide provides a straightforward, step-by-step walkthrough on how to set up a continuous integration (CI) pipeline to compile and vali",
+    false
+  ],
+  [
+    95,
+    "Best Package Registries for WASM Modules",
+    "WebAssembly (WASM) has evolved from a browser-only technology into a powerful runtime for server-side, edge, and cloud-native applications. As the ecosystem expands, developers need reliable platforms to publish, share, and version their WASM binaries. T",
+    false
+  ],
+  [
+    94,
+    "How WebAssembly Ensures Control-Flow Integrity",
+    "WebAssembly (Wasm) provides robust security guarantees by design, particularly through its enforcement of Control-Flow Integrity (CFI). This article explains how Wasm prevents unauthorized code execution and invalid memory jumps by utilizing a structured",
+    false
+  ],
+  [
+    93,
+    "Wasm Execution Stack vs Linear Memory",
+    "WebAssembly (Wasm) utilizes two distinct memory structures during runtime: the function execution stack and the linear memory. This article explains the fundamental differences between these two storage areas, detailing how the execution stack securely m",
+    false
+  ],
+  [
+    92,
+    "WebAssembly.Memory: Share Data Between Web Workers",
+    "This article explains how to use the WebAssembly.Memory API to share data efficiently between Web Workers. You will learn how to create a shared WebAssembly memory buffer, pass it to multiple workers, and read or write data concurrently without the overh",
+    false
+  ],
+  [
+    91,
+    "WebAssembly Memory Alignment Requirements",
+    "This article explores the memory alignment requirements for reading and writing to WebAssembly (Wasm) linear memory. It covers how WebAssembly handles naturally aligned and misaligned memory accesses, the performance implications of alignment on differen",
+    false
+  ],
+  [
+    90,
+    "Run WebAssembly Modules in Node.js",
+    "WebAssembly (Wasm) is not limited to web browsers; it is also fully supported in backend environments. This article explains how to execute WebAssembly modules within a Node.js backend using native APIs, outlines the core steps to load and run Wasm binar",
+    false
+  ],
+  [
+    89,
+    "How Wasm Handles Floating-Point Non-Determinism",
+    "WebAssembly (Wasm) is designed to be a highly portable, fast, and deterministic execution environment. However, achieving absolute determinism across different hardware architectures is challenging when dealing with floating-point operations, as modern C",
+    false
+  ],
+  [
+    88,
+    "How WebAssembly Community Group Evolves Wasm Standards",
+    "The WebAssembly Community Group (CG) is the primary open forum responsible for designing, discussing, and advancing the WebAssembly (Wasm) roadmap. This article provides a clear overview of how the CG operates, its key responsibilities in shaping the Was",
+    false
+  ],
+  [
+    87,
+    "How to Manage WebAssembly Dependencies and Libraries",
+    "Building WebAssembly (Wasm) applications often requires integrating external libraries and managing software dependencies across different programming languages. This article provides a straightforward guide on how to handle dependencies in a Wasm projec",
+    false
+  ],
+  [
+    86,
+    "WebAssembly Text Format S-Expression Syntax Rules",
+    "This article provides a concise guide to the syntax rules for writing S-expressions in the WebAssembly text format (WAT). It covers the fundamental structure of S-expressions, including parenthesized lists, identifiers, keywords, literals, and comments,",
+    false
+  ],
+  [
+    85,
+    "How WasmEdge Optimizes Wasm for Cloud-Native Apps",
+    "This article explores how the WasmEdge runtime optimizes WebAssembly (Wasm) execution specifically for cloud-native environments. We examine its key architectural features, including Ahead-of-Time (AOT) compilation, seamless integration with container or",
+    false
+  ],
+  [
+    84,
+    "Can You Use Wasm and WASI for Docker-Like Containers?",
+    "This article explores whether WebAssembly (Wasm) and the WebAssembly System Interface (WASI) can be used to create and run Docker-like containers. We will examine how Wasm/WASI compares to traditional containerization, look at the tools that enable Wasm-",
+    false
+  ],
+  [
+    83,
+    "How WebAssembly Handles Stdin Stdout and Stderr",
+    "WebAssembly (Wasm) operates in a highly secure, sandboxed execution environment that does not natively possess access to system resources like standard input (stdin), standard output (stdout), and standard error (stderr). To handle these streams, WebAsse",
+    false
+  ],
+  [
+    82,
+    "Compiling Legacy C to WebAssembly: Key Challenges",
+    "Porting legacy C codebases to WebAssembly (Wasm) allows developers to run high-performance, desktop-grade applications directly inside web browsers. However, migrating decades-old code to a modern sandboxed web environment introduces unique technical roa",
+    false
+  ],
+  [
+    81,
+    "Integrate WebAssembly WASM in React and Vue",
+    "This article provides a straightforward guide on how to integrate a WebAssembly (WASM) module into modern React and Vue applications. You will learn how to configure your build tools, import your compiled WASM code, and execute high-performance functions",
+    false
+  ],
+  [
+    80,
+    "WebAssembly AOT vs JIT Compilation Explained",
+    "This article explores the fundamental differences between Ahead-of-Time (AOT) and Just-in-Time (JIT) compilation in the context of WebAssembly (Wasm). It explains how each compilation strategy translates Wasm bytecode into native machine code, compares t",
+    false
+  ],
+  [
+    79,
+    "Secure Cryptography in WebAssembly",
+    "WebAssembly (Wasm) provides a powerful, high-performance runtime environment, but securing cryptographic operations within its sandbox presents unique challenges, particularly regarding memory safety, side-channel attacks, and random number generation. T",
+    false
+  ],
+  [
+    78,
+    "Security Risks of Untrusted WebAssembly Modules",
+    "WebAssembly (Wasm) offers a high-performance, sandboxed execution environment, but running untrusted third-party Wasm modules still poses significant security challenges. This article explores the primary security implications of executing unverified Was",
+    false
+  ],
+  [
+    77,
+    "How WebAssembly Supports 64-Bit Memory Addressing",
+    "WebAssembly (Wasm) historically limited applications to a 32-bit linear memory space, restricting maximum memory usage to 4 gigabytes. To overcome this limitation for memory-intensive applications, the WebAssembly community developed the \"Memory64\" propo",
+    false
+  ],
+  [
+    76,
+    "WebAssembly Memory Management Best Practices",
+    "Efficient memory management is critical for building high-performance WebAssembly (Wasm) applications. This article explores the best practices for structuring memory in Wasm, focusing on linear memory allocation, minimizing serialization overhead across",
+    false
+  ],
+  [
+    75,
+    "How to Profile WebAssembly CPU Performance",
+    "Profiling the CPU performance of a running WebAssembly (Wasm) module is essential for identifying execution bottlenecks and optimizing your web or server-side applications. This article provides a direct, step-by-step guide on how to profile WebAssembly",
+    false
+  ],
+  [
+    74,
+    "What is Cranelift and how does it compile Wasm",
+    "This article provides a clear overview of Cranelift, an open-source code generator, and explains its critical role in compiling WebAssembly (Wasm). You will learn about Cranelift's design philosophy, how it translates Wasm bytecode into native machine co",
+    false
+  ],
+  [
+    73,
+    "V8 WebAssembly Compilation Pipeline Explained",
+    "This article provides a comprehensive overview of how Google’s V8 engine compiles and executes WebAssembly (Wasm) code. It explains the engine's multi-tiered compilation pipeline, detailing how the Liftoff baseline compiler and the TurboFan optimizing",
+    false
+  ],
+  [
+    72,
+    "Dynamically Generate WebAssembly Bytecode in Browser",
+    "This article explains how to dynamically generate WebAssembly (Wasm) bytecode at runtime directly within a web browser. It covers the technical feasibility of browser-side Wasm generation, the APIs required to instantiate this bytecode, practical use cas",
+    false
+  ],
+  [
+    71,
+    "How WebAssembly Validates Modules Before Execution",
+    "WebAssembly (Wasm) enforces a rigorous validation phase before any compiled bytecode is allowed to run. This article explains how the WebAssembly runtime statically analyzes a module to guarantee type safety, memory security, and control-flow integrity,",
+    false
+  ],
+  [
+    70,
+    "WebAssembly Instruction Set Architecture Guide",
+    "This article provides a comprehensive overview of the primary instructions that make up the WebAssembly (Wasm) instruction set architecture. WebAssembly is designed as a low-level, stack-based virtual machine, and understanding its core instruction categ",
+    false
+  ],
+  [
+    69,
+    "WebAssembly vs JavaScript Mobile Battery Life Impact",
+    "This article explores how WebAssembly (Wasm) affects the battery life of mobile devices compared to traditional JavaScript. It examines how Wasm's binary format, faster execution speeds, and lower CPU overhead reduce energy consumption during resource-in",
+    false
+  ],
+  [
+    68,
+    "Running a Database Engine Entirely in WebAssembly",
+    "Yes, it is entirely possible to compile and run a full database engine in WebAssembly (Wasm). This article explores how developers are leveraging systems languages like Rust, C, and C++ to compile powerful relational and analytical database engines direc",
+    false
+  ],
+  [
+    67,
+    "How Lucet Compiler Enables Low-Latency WebAssembly",
+    "Lucet, an ahead-of-time (AOT) compiler and runtime designed by Fastly, delivers ultra-low-latency WebAssembly execution by compiling bytecode into native machine code prior to runtime. This article explains how Lucet achieves microsecond-level instantiat",
+    false
+  ],
+  [
+    66,
+    "Versioning and Updating Deployed Wasm Modules",
+    "This article provides a comprehensive guide on the standard procedures for versioning and updating deployed WebAssembly (Wasm) modules. It covers how to implement semantic versioning, manage module registries, execute seamless runtime updates, and preser",
+    false
+  ],
+  [
+    65,
+    "Handling Endianness When Reading Wasm Memory",
+    "Reading raw bytes directly from WebAssembly (Wasm) linear memory requires careful attention to byte order, as WebAssembly standardizes on a little-endian format. This article explains how to correctly handle endianness when accessing Wasm memory from a J",
+    false
+  ],
+  [
+    64,
+    "How to Compile Go to Optimized Wasm",
+    "WebAssembly (Wasm) allows developers to run Go code in the browser and other environments at near-native speeds. While the standard Go compiler supports Wasm compilation, the resulting binaries can be quite large. This article explores the primary tools",
+    false
+  ],
+  [
+    63,
+    "Wasm and Web Workers for Background Processing",
+    "WebAssembly (Wasm) combined with Web Workers provides a powerful solution for executing heavy computational tasks in the browser without degrading the user experience. By offloading intensive Wasm binaries to background worker threads, applications can m",
+    false
+  ],
+  [
+    62,
+    "Differences Between WebGL, WebGPU, and WebAssembly",
+    "This article provides a clear comparison between WebGL, WebGPU, and WebAssembly (WASM), explaining their distinct roles in modern web development. While WebGL and WebGPU are specialized APIs designed to harness the power of the Graphics Processing Unit (",
+    false
+  ],
+  [
+    61,
+    "Protect WebAssembly from Reverse Engineering",
+    "WebAssembly (Wasm) delivers high-speed performance in the browser, but because its binary format can be easily disassembled into readable WebAssembly Text (WAT), proprietary code is vulnerable to theft and analysis. While complete prevention of reverse e",
+    false
+  ],
+  [
+    60,
+    "WebAssembly Table and Indirect Calls Explained",
+    "This article explains the purpose of the WebAssembly (WASM) table section and how it enables indirect function calls. You will learn how tables act as secure, typed arrays for function references, allowing WebAssembly to safely implement dynamic dispatch",
+    false
+  ],
+  [
+    59,
+    "Real-Time Audio and Video Processing with WebAssembly",
+    "WebAssembly (Wasm) is highly capable of processing audio and video streams in real-time. By compiling low-level languages like C++, Rust, or Go into a binary format that runs at near-native speed in the browser, WebAssembly bypasses the performance limit",
+    false
+  ],
+  [
+    58,
+    "How Blockchain and Smart Contracts Use WebAssembly",
+    "This article explores how WebAssembly (WASM) is transforming the blockchain ecosystem by replacing traditional virtual machines. It examines how blockchain networks utilize WASM to execute smart contracts with near-native speed, support multiple programm",
+    false
+  ],
+  [
+    57,
+    "WebAssembly Impact on Web App Bundle Size",
+    "WebAssembly (Wasm) has revolutionized web development by bringing near-native performance to the browser, but its adoption has a nuanced impact on web application bundle sizes. This article explores how integrating Wasm influences overall payload size, c",
+    false
+  ],
+  [
+    56,
+    "How to Store WebAssembly Modules in Browser Cache",
+    "WebAssembly (WASM) modules can significantly improve web application performance, but fetching and compiling them on every page load introduces latency. This article explains how to efficiently store and retrieve WASM modules in the browser using the Cac",
+    false
+  ],
+  [
+    55,
+    "WebAssembly Support: Mobile vs Desktop Browsers",
+    "This article compares WebAssembly (Wasm) support across mobile and desktop browsers, highlighting how they differ in feature availability, performance, and resource limitations. While core WebAssembly is universally supported across all modern platforms,",
+    false
+  ],
+  [
+    54,
+    "Can a Wasm Module Import Another Wasm Module?",
+    "WebAssembly (Wasm) modules cannot natively import other Wasm modules directly in standard browser environments without the aid of JavaScript or a bundler. While the WebAssembly specification defines an import section, the actual resolution and linking of",
+    false
+  ],
+  [
+    53,
+    "How Wasm Handles Dynamic Linking of Multiple Modules",
+    "WebAssembly (Wasm) handles dynamic linking of multiple modules at runtime by leveraging exports, imports, shared memory, and function tables, all orchestrated by a host environment like a web browser or a system runtime. Unlike traditional operating syst",
+    false
+  ],
+  [
+    52,
+    "How wasm-bindgen Bridges Rust and WebAssembly",
+    "This article explains the critical role of wasm-bindgen when compiling Rust to WebAssembly (Wasm). It covers how this tool facilitates high-performance communication between Rust and JavaScript, translates complex data types, and automates the generation",
+    false
+  ],
+  [
+    51,
+    "How to Use SIMD Vector Math in WebAssembly",
+    "This article provides a practical guide on how to perform vector math and Single Instruction, Multiple Data (SIMD) operations in WebAssembly (Wasm). You will learn how to enable 128-bit vector operations, write SIMD code in C/C++ and Rust, compile it for",
+    false
+  ],
+  [
+    50,
+    "JavaScript and WebAssembly Boundary Overhead",
+    "Integrating WebAssembly (Wasm) into web applications can significantly boost performance, but communication between the JavaScript engine and the Wasm runtime introduces a performance cost. This article explains the nature of the JS-Wasm boundary overhea",
+    false
+  ],
+  [
+    49,
+    "How to Debug WebAssembly with Source Maps",
+    "WebAssembly (WASM) enables high-performance applications on the web, but debugging raw binary or text-format WebAssembly (WAT) is incredibly challenging. This guide outlines how to use source maps and DWARF debug symbols to map compiled WASM bytecode bac",
+    false
+  ],
+  [
+    48,
+    "WebAssembly Out-of-Bounds Memory Access Explained",
+    "When a WebAssembly (Wasm) module attempts to access memory outside its allocated linear memory boundaries, the runtime environment immediately halts execution by triggering a \"trap.\" This article explains how WebAssembly handles out-of-bounds memory acce",
+    false
+  ],
+  [
+    47,
+    "How Game Engines Target WebAssembly for Web Deployment",
+    "Modern game engines like Unity and Unreal Engine allow developers to deploy high-performance games directly to web browsers using WebAssembly (Wasm). This article explains the technical pipeline behind this process, detailing how native C++ and C# code i",
+    false
+  ],
+  [
+    46,
+    "What is Blazor WebAssembly for .NET Developers?",
+    "This article provides an overview of Blazor, Microsoft’s modern front-end web framework, focusing specifically on how it utilizes WebAssembly (Wasm) to enable .NET developers to build rich, interactive client-side web applications. We will explore the",
+    false
+  ],
+  [
+    45,
+    "Can You Build Web Frameworks Entirely in WebAssembly?",
+    "WebAssembly (WASM) has revolutionized web development by allowing high-performance, compiled languages to run in the browser alongside JavaScript. While it is technically possible to write entire front-end web frameworks in languages that compile to WebA",
+    false
+  ],
+  [
+    44,
+    "WebAssembly GC: Compiling Java and C# to Wasm",
+    "The WebAssembly Garbage Collection (Wasm GC) proposal is a major milestone that redefines how managed languages like Java and C# are compiled for the web. Historically, running these languages in the browser required shipping a bulky runtime and custom g",
+    false
+  ],
+  [
+    43,
+    "Limitations of compiling GC languages to Wasm",
+    "WebAssembly (Wasm) was originally designed for low-level languages with manual memory management, such as C, C++, and Rust. As developers increasingly look to compile garbage-collected (GC) languages like Go, Java, C#, and Python to Wasm, they encounter",
+    false
+  ],
+  [
+    42,
+    "How WASI Standardizes WebAssembly OS Interactions",
+    "WebAssembly (Wasm) was originally designed to run securely inside web browsers, isolated from the host operating system. To run WebAssembly outside the browser—on servers, edge devices, and desktops—it requires a safe way to interact with system reso",
+    false
+  ],
+  [
+    41,
+    "WebAssembly Global Variables and How to Mutate Them",
+    "WebAssembly (Wasm) global variables are accessible across different functions within a Wasm module and can even be shared between the module and its host environment, such as JavaScript. This article explores what Wasm global variables are, how they are",
+    false
+  ],
+  [
+    40,
+    "Export WebAssembly Functions to JavaScript",
+    "To run high-performance WebAssembly (Wasm) code in a web application, you must export functions from your compiled binary so JavaScript can access them. This article explains how to mark functions for export in languages like C/C++ and Rust, compile them",
+    false
+  ],
+  [
+    39,
+    "Import JavaScript Functions into WebAssembly",
+    "WebAssembly (Wasm) modules are designed to run alongside JavaScript, and you can indeed import JavaScript functions directly into a Wasm module. This article explains how this integration works, the step-by-step process of passing JavaScript functions du",
+    false
+  ],
+  [
+    38,
+    "How WebAssembly Handles Complex Data Structures",
+    "WebAssembly (Wasm) operates on a low-level, high-performance execution model that natively supports only basic numeric data types. This article explains how WebAssembly manages complex data structures like objects and arrays through linear memory allocat",
+    false
+  ],
+  [
+    37,
+    "The Role of LLVM in WebAssembly Compilation",
+    "This article explores how the LLVM compiler infrastructure facilitates the generation of WebAssembly (Wasm). It covers the compilation pipeline from source code to LLVM Intermediate Representation (IR), the role of the WebAssembly target backend, and how",
+    false
+  ],
+  [
+    36,
+    "How to Reduce WebAssembly WASM Binary Size",
+    "WebAssembly (Wasm) enables high-performance applications on the web, but large binary sizes can lead to slow download times and poor user experiences. This article provides a practical, straight-to-the-point guide on how to optimize your Wasm binaries fo",
+    false
+  ],
+  [
+    35,
+    "WebAssembly Size Limits and Payload Constraints",
+    "This article provides a comprehensive overview of the size limits and constraints of compiled WebAssembly (Wasm) payloads. It covers official specification limits, browser runtime restrictions, memory boundaries, and the practical performance implication",
+    false
+  ],
+  [
+    34,
+    "How WebAssembly Handles System Calls and File IO",
+    "WebAssembly (Wasm) operates in a highly secured, sandboxed environment that restricts direct access to a computer's hardware, file system, and network. To perform system calls like file input/output (I/O) or network requests, Wasm modules must rely on ho",
+    false
+  ],
+  [
+    33,
+    "What is Wasmtime and How Does It Run WebAssembly?",
+    "Wasmtime is an open-source, lightweight runtime designed to execute WebAssembly (Wasm) bytecode outside of the web browser. This article explores the fundamentals of Wasmtime, its architecture, and how it leverages the Cranelift compiler and the WebAssem",
+    false
+  ],
+  [
+    32,
+    "How Edge Computing Uses Wasm for Serverless",
+    "This article explores how edge computing platforms utilize WebAssembly (Wasm) to power the next generation of serverless functions. By replacing traditional containers and virtual machines with lightweight Wasm runtimes, edge providers can deliver near-i",
+    false
+  ],
+  [
+    31,
+    "Can WebAssembly Run Asynchronous Operations?",
+    "WebAssembly (Wasm) cannot execute asynchronous operations directly because its core execution model is fundamentally synchronous and single-threaded. However, developers can achieve asynchronous behavior by relying on the host environment—such as the b",
+    false
+  ],
+  [
+    30,
+    "Understanding wasm-pack in the Rust Ecosystem",
+    "This article explores the role of wasm-pack within the Rust developer ecosystem, detailing how it simplifies compiling Rust code to WebAssembly (Wasm). We will examine its core functionalities, how it bridges the gap between Rust and JavaScript, and why",
+    false
+  ],
+  [
+    29,
+    "WebAssembly Exception Handling and Error Routing",
+    "WebAssembly (Wasm) handles exceptions and error routing through a combination of native WebAssembly instruction sets, language-specific runtimes, and integration with the host environment, such as JavaScript or a WebAssembly System Interface (WASI) runti",
+    false
+  ],
+  [
+    28,
+    "Applications That Benefit Most From WebAssembly",
+    "WebAssembly (Wasm) has revolutionized web development by allowing developers to run high-performance code directly in the browser. However, because modern JavaScript engines are already highly optimized for standard web tasks, not every project requires",
+    false
+  ],
+  [
+    27,
+    "How to Grow WebAssembly Memory Dynamically",
+    "WebAssembly (Wasm) operates on a linear memory model that can be resized during runtime to accommodate growing data needs. This article explains how to dynamically increase the memory allocated to a WebAssembly instance using both the JavaScript host API",
+    false
+  ],
+  [
+    26,
+    "Significance of Wasm Linear Memory Model",
+    "This article explores the significance of the WebAssembly (Wasm) linear memory model, detailing how its flat, contiguous byte array structure ensures security, high performance, and language interoperability. We will examine how this model isolates memor",
+    false
+  ],
+  [
+    25,
+    "Fetch API and Streaming WebAssembly Compilation",
+    "This article explores how the Fetch API integrates with streaming WebAssembly (Wasm) compilation to optimize web application performance. By combining fetch() with WebAssembly's streaming APIs, developers can compile and instantiate Wasm modules in the b",
+    false
+  ],
+  [
+    24,
+    "Load and Instantiate WebAssembly Modules in JavaScript",
+    "WebAssembly (Wasm) allows developers to run high-performance code in the browser alongside JavaScript. To use a WebAssembly module, you must first fetch its binary file, compile it, and instantiate it so JavaScript can access its exported functions. This",
+    false
+  ],
+  [
+    23,
+    "Generate WebAssembly Modules with Python",
+    "This article explains how to use Python code to generate a functioning WebAssembly (Wasm) module. It covers the core concepts of WebAssembly generation from Python, provides a complete and runnable Python script that compiles WebAssembly Text Format (WAT",
+    false
+  ],
+  [
+    22,
+    "WebAssembly Native Integer and Float Arithmetic",
+    "WebAssembly (Wasm) is designed as a low-level, high-performance compilation target that executes arithmetic operations near native machine speed. This article explores how Wasm natively handles integer and floating-point arithmetic, detailing its support",
+    false
+  ],
+  [
+    21,
+    "WebAssembly Performance Bottlenecks to Avoid",
+    "While WebAssembly (Wasm) offers near-native execution speeds in the browser, developers often encounter hidden performance pitfalls that can degrade application efficiency. This article highlights the primary WebAssembly performance bottlenecks to watch",
+    false
+  ],
+  [
+    20,
+    "How to Debug WebAssembly in a Web Browser",
+    "Debugging WebAssembly (Wasm) modules running inside a web browser has become significantly easier thanks to modern browser developer tools and source-level debugging standards. This article provides a practical, step-by-step guide on how to debug your Wa",
+    false
+  ],
+  [
+    19,
+    "What is the WASM Component Model and Why It Matters",
+    "This article provides a comprehensive overview of the WebAssembly (WASM) Component Model, explaining what it is, how it operates, and why it is a critical technology for the future of software development. You will learn how this specification solves lon",
+    false
+  ],
+  [
+    18,
+    "How Wasm Uses SharedArrayBuffer for Concurrency",
+    "This article explores how WebAssembly (Wasm) achieves high-performance concurrent operations by leveraging SharedArrayBuffer. It explains how this shared memory model allows multiple Web Workers to access the same memory space simultaneously, examines th",
+    false
+  ],
+  [
+    17,
+    "WebAssembly Multithreading Limitations",
+    "WebAssembly (WASM) has brought near-native performance to the web, but its approach to multi-threading comes with distinct challenges. While WASM supports parallel execution, it does not manage threads in the same way traditional desktop environments do.",
+    false
+  ],
+  [
+    16,
+    "Using Rust to Generate WebAssembly WASM Modules",
+    "Yes, the Rust programming language is highly capable of generating WebAssembly (Wasm) modules, and it is widely considered one of the best languages for this purpose. This article explains how Rust compiles to WebAssembly, the key tools involved in the e",
+    false
+  ],
+  [
+    15,
+    "How WebAssembly Achieves a Sandboxed Environment",
+    "WebAssembly (Wasm) provides a secure, lightweight, and highly performant execution environment by running code inside a strict, isolated sandbox. This article explores the core mechanisms Wasm uses to achieve this isolation, focusing on its linear memory",
+    false
+  ],
+  [
+    14,
+    "WebAssembly Security: Preventing Malicious Code",
+    "WebAssembly (Wasm) is designed with a robust security model that allows untrusted code to execute at near-native speed without compromising host system integrity. This article explores the primary security mechanisms Wasm employs to isolate execution env",
+    false
+  ],
+  [
+    13,
+    "Pass Strings Between JavaScript and WebAssembly",
+    "WebAssembly (Wasm) only natively supports numeric data types, making the transfer of strings between JavaScript and Wasm a unique challenge. This article explains how to pass string data back and forth by leveraging WebAssembly’s shared linear memory,",
+    false
+  ],
+  [
+    12,
+    "What is WASI and How Does it Relate to WASM?",
+    "WebAssembly System Interface (WASI) is a standardized API designed to allow WebAssembly (WASM) programs to run securely outside of the web browser. This article explains what WASI stands for, its core architecture, and how it extends the capabilities of",
+    false
+  ],
+  [
+    11,
+    "Run WebAssembly Outside the Browser",
+    "WebAssembly (Wasm) is no longer confined to web browsers; it has successfully transitioned to a powerful, general-purpose runtime environment for server-side and desktop applications. This article explains how WebAssembly runs outside the browser, introd",
+    false
+  ],
+  [
+    10,
+    "How WebAssembly Interacts with the DOM",
+    "WebAssembly (Wasm) is designed to run high-performance code on the web, but it cannot access the Document Object Model (DOM) directly. Instead, WebAssembly must interact with the DOM indirectly by communicating with JavaScript, which acts as a bridge. Th",
+    false
+  ],
+  [
+    9,
+    "Difference Between WASM and WAT Formats",
+    "This article explains the fundamental differences between the WebAssembly binary format (.wasm) and the WebAssembly text format (.wat). Although both represent the exact same program structure, they are designed for different audiences—one for machines",
+    false
+  ],
+  [
+    8,
+    "Write WebAssembly Code Directly by Hand Using WAT",
+    "Yes, you can write WebAssembly (Wasm) code directly by hand using its official textual representation, known as WebAssembly Text Format (WAT). This article provides a practical introduction to writing WAT by hand, understanding its S-expression-based syn",
+    false
+  ],
+  [
+    7,
+    "How WebAssembly Handles Memory and Garbage Collection",
+    "WebAssembly (Wasm) utilizes a secure, low-level memory model that has recently evolved to support high-level programming languages more efficiently. Historically, WebAssembly relied solely on a contiguous, flat range of bytes called linear memory, which",
+    false
+  ],
+  [
+    6,
+    "What Is the Role of Emscripten in WebAssembly",
+    "This article explains the vital role Emscripten plays in the WebAssembly (Wasm) ecosystem. We will explore how Emscripten acts as a compiler toolchain to translate C and C++ code into WebAssembly, how it bridges the gap between low-level languages and th",
+    false
+  ],
+  [
+    5,
+    "How to Compile C++ to WebAssembly",
+    "WebAssembly (Wasm) allows developers to run high-performance C++ code directly in the web browser at near-native speed. This guide provides a straightforward, step-by-step walkthrough on how to compile C++ code into a WebAssembly module using the Emscrip",
+    false
+  ],
+  [
+    4,
+    "Which Browsers Support WebAssembly by Default?",
+    "WebAssembly (Wasm) has become a foundational technology for the modern web, enabling high-performance, compiled code to run in the browser alongside JavaScript. This article lists the major desktop and mobile web browsers that currently support WebAssemb",
+    false
+  ],
+  [
+    3,
+    "WebAssembly vs Assembly: Key Differences",
+    "While both WebAssembly (Wasm) and traditional assembly languages represent low-level code close to the metal, they serve fundamentally different environments and purposes. Traditional assembly is tied directly to specific hardware architectures, whereas",
+    false
+  ],
+  [
+    2,
+    "WebAssembly vs JavaScript Execution Speed",
+    "WebAssembly (Wasm) and JavaScript are both essential technologies for modern web development, but they handle code execution differently. While WebAssembly is designed to deliver near-native performance for heavy computational tasks by using a low-level",
+    false
+  ],
+  [
+    1,
+    "What is WebAssembly and What Problem Does It Solve?",
+    "This article provides a comprehensive overview of WebAssembly (Wasm), exploring what this technology is and the primary performance challenges it solves in modern web development. You will learn how WebAssembly enables high-performance, compiled code to",
+    false
+  ]
+]

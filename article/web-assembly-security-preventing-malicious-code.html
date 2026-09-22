@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAssembly Security: Preventing Malicious Code - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) is designed with a robust security model that allows untrusted code to execute at near-native speed without compromising host system integrity. This article explores the primary security mechanisms Wasm employs to isolate execution env">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/web-assembly-security-preventing-malicious-code">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="WebAssembly Security: Preventing Malicious Code - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/web-assembly-security-preventing-malicious-code" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) is designed with a robust security model that allows untrusted code to execute at near-native speed without compromising host system integrity. This article explores the primary security mechanisms Wasm employs to isolate execution env" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="webassembly-security-preventing-malicious-code">WebAssembly
+Security: Preventing Malicious Code</h1>
+<p>WebAssembly (Wasm) is designed with a robust security model that
+allows untrusted code to execute at near-native speed without
+compromising host system integrity. This article explores the primary
+security mechanisms Wasm employs to isolate execution environments,
+protect system memory, and prevent the execution of malicious code,
+including sandboxing, linear memory constraints, and strict compilation
+validation.</p>
+<h2 id="sandboxed-execution-environment">Sandboxed Execution
+Environment</h2>
+<p>WebAssembly code executes within a highly restricted, isolated
+sandbox environment. By default, a Wasm module has no direct access to
+the host operating system, the physical hardware, or the surrounding
+browser DOM.</p>
+<p>All interactions with the outside world must go through explicit
+imports and exports defined by the host environment (such as a web
+browser or a server-side runtime). If a Wasm module needs to write to a
+console, access the network, or read a file, the host must explicitly
+provide a JavaScript glue function or a WebAssembly System Interface
+(WASI) API to permit that specific action. Without these explicitly
+granted capabilities, the code remains entirely locked inside its
+sandbox.</p>
+<h2 id="memory-isolation-and-bounds-checking">Memory Isolation and
+Bounds Checking</h2>
+<p>Unlike traditional native binaries (such as C or C++ compiled
+directly to x86 or ARM), WebAssembly does not have direct access to the
+host's physical memory addresses. Instead, Wasm utilizes a concept
+called <strong>linear memory</strong>.</p>
+<ul>
+<li><strong>Contiguous Memory Block:</strong> A Wasm module is allocated
+a single, contiguous array of raw bytes as its memory space.</li>
+<li><strong>Hard Boundaries:</strong> The module cannot access any
+memory address outside of this allocated block.</li>
+<li><strong>Bounds Checking:</strong> Every read and write operation
+within the linear memory is automatically checked against the maximum
+size of the allocated memory. If a program attempts to read or write
+beyond these boundaries, the runtime immediately throws an out-of-bounds
+error and halts execution, effectively neutralizing buffer overflow
+attacks that could lead to arbitrary code execution.</li>
+</ul>
+<h2 id="structured-control-flow">Structured Control Flow</h2>
+<p>Traditional assembly languages allow arbitrary jumps to any memory
+address (using instructions like <code>jmp</code> in x86), which
+attackers exploit to hijack control flow (e.g., Return-Oriented
+Programming, or ROP). WebAssembly prevents this by enforcing structured
+control flow.</p>
+<ul>
+<li><strong>No Arbitrary Jumps:</strong> Wasm does not support arbitrary
+jumps. Instead, it uses structured constructs like <code>block</code>,
+<code>loop</code>, and <code>if</code> blocks.</li>
+<li><strong>Protected Call Stack:</strong> The execution call stack
+(which stores function return addresses and local variables) is
+completely separated from the module’s linear memory. Because a
+malicious script cannot access or modify the call stack, it cannot
+overwrite return addresses to redirect the program to malicious
+payloads.</li>
+<li><strong>Type-Safe Indirect Calls:</strong> When functions are called
+indirectly (via pointers or tables), Wasm validates that the target
+function signature exactly matches the expected type signature at
+runtime. If there is a mismatch, execution is immediately
+terminated.</li>
+</ul>
+<h2 id="ahead-of-time-validation">Ahead-of-Time Validation</h2>
+<p>Before a WebAssembly module is compiled into machine code and
+executed by the host, it undergoes a strict, single-pass validation
+phase.</p>
+<p>The validation algorithm checks the binary format to ensure:</p>
+<ul>
+<li>The module is structurally well-formed.</li>
+<li>All instructions are valid and safe.</li>
+<li>The stack depth and types remain consistent throughout
+execution.</li>
+<li>There are no type mismatches or illegal operations.</li>
+</ul>
+<p>Any Wasm file that fails this validation is rejected immediately,
+preventing malformed or corrupted binaries from ever executing on the
+host CPU.</p>
+<h2 id="capability-based-security-wasi">Capability-Based Security
+(WASI)</h2>
+<p>When WebAssembly is run outside the browser, it often uses the
+WebAssembly System Interface (WASI) to interact with the host operating
+system. WASI implements a <strong>capability-based security
+model</strong>.</p>
+<p>Under this model, the Wasm runtime does not inherit the ambient
+authority of the user running it. For example, even if a user has access
+to the entire file system, a WASI application cannot access any file or
+directory unless the user explicitly passes that specific directory
+handle (capability) to the module at startup. This prevents malicious
+dependencies from quietly scanning system files or exfiltrating
+sensitive data.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

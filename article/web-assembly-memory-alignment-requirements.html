@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAssembly Memory Alignment Requirements - wasm</title>
+    <meta name="description" content="This article explores the memory alignment requirements for reading and writing to WebAssembly (Wasm) linear memory. It covers how WebAssembly handles naturally aligned and misaligned memory accesses, the performance implications of alignment on differen">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/web-assembly-memory-alignment-requirements">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="WebAssembly Memory Alignment Requirements - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/web-assembly-memory-alignment-requirements" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores the memory alignment requirements for reading and writing to WebAssembly (Wasm) linear memory. It covers how WebAssembly handles naturally aligned and misaligned memory accesses, the performance implications of alignment on differen" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="webassembly-memory-alignment-requirements">WebAssembly Memory
+Alignment Requirements</h1>
+<p>This article explores the memory alignment requirements for reading
+and writing to WebAssembly (Wasm) linear memory. It covers how
+WebAssembly handles naturally aligned and misaligned memory accesses,
+the performance implications of alignment on different hardware, and how
+alignment is represented in Wasm binary instructions.</p>
+<h3 id="natural-alignment-in-webassembly">Natural Alignment in
+WebAssembly</h3>
+<p>In WebAssembly, memory operations are most efficient when they are
+"naturally aligned." Natural alignment means that the memory address of
+a data value is a multiple of the size of the data type being accessed.
+WebAssembly supports several primitive data types, each with its own
+natural alignment requirement:</p>
+<ul>
+<li><strong>1-byte values (i8):</strong> Can be accessed at any byte
+address (1-byte aligned).</li>
+<li><strong>2-byte values (i16):</strong> Best accessed at addresses
+divisible by 2.</li>
+<li><strong>4-byte values (i32, f32):</strong> Best accessed at
+addresses divisible by 4.</li>
+<li><strong>8-byte values (i64, f64):</strong> Best accessed at
+addresses divisible by 8.</li>
+<li><strong>16-byte values (v128/SIMD):</strong> Best accessed at
+addresses divisible by 16.</li>
+</ul>
+<h3 id="how-webassembly-handles-alignment">How WebAssembly Handles
+Alignment</h3>
+<p>Every load and store instruction in the WebAssembly binary format
+includes an alignment attribute, encoded as a power of two. This
+attribute represents the expected alignment of the memory operation.</p>
+<p>The alignment attribute acts as a hint to the WebAssembly runtime
+execution engine (such as V8, SpiderMonkey, or Wasmtime). It informs the
+compiler of the guarantee that the target address will be aligned to
+that boundary, allowing the engine to generate the most optimal machine
+code for the host CPU.</p>
+<h3 id="misaligned-memory-accesses">Misaligned Memory Accesses</h3>
+<p>WebAssembly does not enforce strict alignment at runtime. If a load
+or store instruction executes with an address that is not aligned to the
+natural boundary of the data type (or the alignment specified in the
+instruction), the operation will still succeed. WebAssembly guarantees
+that misaligned memory accesses are semantically valid and will not
+cause a trap (crash) or memory corruption.</p>
+<p>However, misaligned accesses can come with a performance cost:</p>
+<ul>
+<li><strong>Hardware Support:</strong> Modern x86 and x86_64 processors
+handle misaligned memory accesses in hardware with negligible
+performance loss, except when the access crosses a cache line
+boundary.</li>
+<li><strong>Emulated Access:</strong> On some ARM processors or older
+architectures, misaligned memory access is not supported directly by the
+hardware. In these cases, the WebAssembly runtime or the underlying
+operating system must trap and emulate the access using multiple
+smaller, aligned instructions. This emulation can result in a
+significant performance penalty.</li>
+</ul>
+<h3 id="developer-best-practices">Developer Best Practices</h3>
+<p>Because WebAssembly is designed to run cross-platform, developers
+should always aim for natural alignment to ensure consistent performance
+across all devices.</p>
+<p>When writing code in languages that compile to WebAssembly, such as
+C, C++, Rust, or Go, the compiler automatically handles data structure
+padding and alignment. However, when working with manual memory
+management, raw pointers, or custom serialization formats in WebAssembly
+linear memory, you must manually ensure that multi-byte values are read
+from and written to offsets that match their natural alignment.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

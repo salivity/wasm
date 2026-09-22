@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript and WebAssembly Boundary Overhead - wasm</title>
+    <meta name="description" content="Integrating WebAssembly (Wasm) into web applications can significantly boost performance, but communication between the JavaScript engine and the Wasm runtime introduces a performance cost. This article explains the nature of the JS-Wasm boundary overhea">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/java-script-and-web-assembly-boundary-overhead">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="JavaScript and WebAssembly Boundary Overhead - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/java-script-and-web-assembly-boundary-overhead" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Integrating WebAssembly (Wasm) into web applications can significantly boost performance, but communication between the JavaScript engine and the Wasm runtime introduces a performance cost. This article explains the nature of the JS-Wasm boundary overhea" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="javascript-and-webassembly-boundary-overhead">JavaScript and
+WebAssembly Boundary Overhead</h1>
+<p>Integrating WebAssembly (Wasm) into web applications can
+significantly boost performance, but communication between the
+JavaScript engine and the Wasm runtime introduces a performance cost.
+This article explains the nature of the JS-Wasm boundary overhead,
+details why passing complex data types creates latency, and provides
+practical strategies to minimize this overhead in your applications.</p>
+<h2 id="the-cost-of-function-calls">The Cost of Function Calls</h2>
+<p>Historically, crossing the boundary between JavaScript and
+WebAssembly was slow due to the engine transitions required to jump
+between the two execution environments. However, modern browser engines
+(such as V8, SpiderMonkey, and JavaScriptCore) have heavily optimized
+this pipeline.</p>
+<p>Today, a simple function call with numeric arguments (integers or
+floats) crossing the JS-Wasm boundary is extremely fast. These
+"fast-path" calls are heavily optimized by Just-In-Time (JIT) compilers,
+often taking only a few nanoseconds—making them comparable to standard
+JavaScript function calls.</p>
+<h2 id="the-real-bottleneck-data-marshalling">The Real Bottleneck: Data
+Marshalling</h2>
+<p>While calling a function is cheap, passing complex data across the
+boundary is not. WebAssembly natively understands only numbers (integers
+and floating-point values). It cannot directly access JavaScript
+objects, strings, arrays, or the DOM.</p>
+<p>To pass complex data across the boundary, the data must undergo a
+process called <strong>marshalling</strong>:</p>
+<ol type="1">
+<li><strong>Memory Allocation:</strong> Space must be allocated inside
+WebAssembly's linear memory (a large, contiguous array of raw
+bytes).</li>
+<li><strong>Serialization:</strong> JavaScript must convert its
+high-level data types into raw bytes. For example, a JavaScript string
+must be encoded into UTF-8 bytes using <code>TextEncoder</code> and
+written into the Wasm linear memory.</li>
+<li><strong>Pointers:</strong> JavaScript passes the memory address
+(pointer) and the length of the data to the Wasm function as simple
+integers.</li>
+<li><strong>Deserialization:</strong> Wasm reads the raw bytes from its
+memory and reconstructs the data structure.</li>
+</ol>
+<p>This encoding, copying, and decoding process introduces CPU and
+memory overhead that can easily dwarf the actual execution time of the
+Wasm code.</p>
+<h2 id="garbage-collection-and-memory-management">Garbage Collection and
+Memory Management</h2>
+<p>JavaScript is a garbage-collected language, whereas standard
+WebAssembly manages its own linear memory manually (or via languages
+like Rust and C++). Every time you allocate memory inside Wasm from
+JavaScript to pass data, you must manually free it afterward to prevent
+memory leaks. The coordination between JavaScript's garbage collector
+and Wasm's linear memory adds additional runtime complexity and
+overhead.</p>
+<h2 id="how-to-minimize-boundary-overhead">How to Minimize Boundary
+Overhead</h2>
+<p>To prevent the JS-Wasm boundary from becoming a performance
+bottleneck, follow these architectural best practices:</p>
+<ul>
+<li><strong>Keep the Boundary "Chunky, Not Chatty":</strong> Avoid
+making frequent, rapid calls across the boundary (e.g., calling a Wasm
+function inside a tight JavaScript loop). Instead, pass a large batch of
+data once, let Wasm perform heavy computations, and return the final
+result.</li>
+<li><strong>Keep Data on One Side:</strong> If Wasm needs to perform
+multiple operations on a dataset, keep that data inside Wasm's linear
+memory between calls rather than copying it back and forth to
+JavaScript.</li>
+<li><strong>Use TypedArrays:</strong> When passing large amounts of
+numerical data, use JavaScript <code>TypedArrays</code> (like
+<code>Int32Array</code> or <code>Float64Array</code>). These can map
+directly to Wasm's linear memory, reducing serialization overhead.</li>
+<li><strong>Leverage Modern Tooling:</strong> Use tools like
+<code>wasm-bindgen</code> (for Rust) or Emscripten (for C/C++). While
+they still perform copying under the hood, they generate highly
+optimized glue code that minimizes the performance impact of boundary
+crossing.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

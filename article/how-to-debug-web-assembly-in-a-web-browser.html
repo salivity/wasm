@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Debug WebAssembly in a Web Browser - wasm</title>
+    <meta name="description" content="Debugging WebAssembly (Wasm) modules running inside a web browser has become significantly easier thanks to modern browser developer tools and source-level debugging standards. This article provides a practical, step-by-step guide on how to debug your Wa">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-to-debug-web-assembly-in-a-web-browser">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Debug WebAssembly in a Web Browser - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-to-debug-web-assembly-in-a-web-browser" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Debugging WebAssembly (Wasm) modules running inside a web browser has become significantly easier thanks to modern browser developer tools and source-level debugging standards. This article provides a practical, step-by-step guide on how to debug your Wa" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-to-debug-webassembly-in-a-web-browser">How to Debug
+WebAssembly in a Web Browser</h1>
+<p>Debugging WebAssembly (Wasm) modules running inside a web browser has
+become significantly easier thanks to modern browser developer tools and
+source-level debugging standards. This article provides a practical,
+step-by-step guide on how to debug your Wasm code directly inside the
+browser using source maps and DWARF debug information, allowing you to
+set breakpoints, step through code, and inspect variables in your
+original source language like C++, Rust, or Go.</p>
+<h2 id="1-compile-with-debug-symbols">1. Compile with Debug Symbols</h2>
+<p>To debug WebAssembly at the source level, you must compile your
+source code with debugging symbols enabled. This embeds DWARF debug
+information into the Wasm binary or generates source maps.</p>
+<ul>
+<li><strong>For C/C++ (Emscripten):</strong> Use the <code>-g</code>
+flag during compilation. To preserve source files, use <code>-g4</code>
+to generate source maps.
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">emcc</span> main.cpp <span class="at">-g4</span> <span class="at">-o</span> index.html</span></code></pre></div></li>
+<li><strong>For Rust (wasm-pack / rustc):</strong> Ensure you are
+compiling in <code>debug</code> mode rather than <code>release</code>
+(which strips symbols by default), or explicitly enable debug symbols in
+your <code>Cargo.toml</code>:
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode toml"><code class="sourceCode toml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[profile.release]</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dt">debug</span> <span class="op">=</span> <span class="cn">true</span></span></code></pre></div></li>
+</ul>
+<h2 id="2-enable-wasm-debugging-in-your-browser">2. Enable Wasm
+Debugging in Your Browser</h2>
+<p>Modern browsers like Google Chrome, Microsoft Edge, and Mozilla
+Firefox support WebAssembly debugging natively or via extensions.</p>
+<ul>
+<li><strong>Google Chrome / Edge:</strong> Install the "C/C++ DevTools
+Support (DWARF)" extension from the Chrome Web Store. This extension
+allows the Chrome DevTools to parse DWARF debug information embedded in
+your Wasm file.</li>
+<li><strong>Firefox:</strong> Developer Tools support Wasm debugging out
+of the box, mapping the binary back to the source files if source maps
+are available.</li>
+</ul>
+<p>Open your browser's Developer Tools (F12 or Ctrl+Shift+I /
+Cmd+Option+I), go to <strong>Settings</strong> (gear icon), navigate to
+<strong>Preferences</strong>, and ensure that <strong>JavaScript source
+maps</strong> and <strong>Associated files</strong> are enabled.</p>
+<h2 id="3-locate-source-files-in-devtools">3. Locate Source Files in
+DevTools</h2>
+<p>Once your application is running in the browser with DevTools
+open:</p>
+<ol type="1">
+<li>Navigate to the <strong>Sources</strong> (or
+<strong>Debugger</strong> in Firefox) tab.</li>
+<li>In the file navigator on the left, look for a folder containing your
+original source files (e.g., C++, Rust, or Go files). These are loaded
+dynamically via the debug symbols embedded in the <code>.wasm</code>
+file.</li>
+<li>Click on a source file to open it in the editor pane.</li>
+</ol>
+<h2 id="4-set-breakpoints-and-step-through-code">4. Set Breakpoints and
+Step Through Code</h2>
+<p>With your original source code visible in the browser, you can debug
+it just like standard JavaScript:</p>
+<ul>
+<li><strong>Set Breakpoints:</strong> Click on the line number in your
+C++, Rust, or Go source file where you want execution to pause.</li>
+<li><strong>Trigger Execution:</strong> Interact with your web
+application to trigger the WebAssembly function. The browser will pause
+execution at your breakpoint.</li>
+<li><strong>Step Through:</strong> Use the debugging controls (Step
+Over, Step Into, Step Out, Resume) to navigate through your source code
+line by line.</li>
+</ul>
+<h2 id="5-inspect-variables-and-call-stacks">5. Inspect Variables and
+Call Stacks</h2>
+<p>When paused at a breakpoint, the DevTools sidebar provides vital
+information about the state of your Wasm module:</p>
+<ul>
+<li><strong>Scope Panel:</strong> Inspect the current values of local
+and global variables. The DWARF extension translates the raw Wasm memory
+and stack values back into their original types (e.g., structs,
+pointers, integers).</li>
+<li><strong>Call Stack:</strong> View the active function execution
+path. You can click on previous stack frames to inspect the state of the
+application at earlier points in the execution flow.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

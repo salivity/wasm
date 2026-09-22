@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebAssembly.Memory: Share Data Between Web Workers - wasm</title>
+    <meta name="description" content="This article explains how to use the WebAssembly.Memory API to share data efficiently between Web Workers. You will learn how to create a shared WebAssembly memory buffer, pass it to multiple workers, and read or write data concurrently without the overh">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/web-assembly-memory-share-data-between-web-workers">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="WebAssembly.Memory: Share Data Between Web Workers - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/web-assembly-memory-share-data-between-web-workers" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains how to use the WebAssembly.Memory API to share data efficiently between Web Workers. You will learn how to create a shared WebAssembly memory buffer, pass it to multiple workers, and read or write data concurrently without the overh" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1
+id="webassemblymemory-share-data-between-web-workers">WebAssembly.Memory:
+Share Data Between Web Workers</h1>
+<p>This article explains how to use the <code>WebAssembly.Memory</code>
+API to share data efficiently between Web Workers. You will learn how to
+create a shared WebAssembly memory buffer, pass it to multiple workers,
+and read or write data concurrently without the overhead of structured
+cloning.</p>
+<h2 id="understanding-shared-webassembly-memory">Understanding Shared
+WebAssembly Memory</h2>
+<p>By default, Web Workers communicate by passing messages via the
+<code>postMessage</code> API, which copies data using the structured
+clone algorithm. For large datasets, this copying mechanism introduces
+significant performance overhead.</p>
+<p>The <code>WebAssembly.Memory</code> API offers a high-performance
+alternative. By configuring WebAssembly memory to be shared, multiple
+execution threads (the main thread and Web Workers) can read and write
+to the same underlying raw binary buffer
+(<code>SharedArrayBuffer</code>) simultaneously.</p>
+<h2 id="step-1-security-requirements">Step 1: Security Requirements</h2>
+<p>Because shared memory relies on <code>SharedArrayBuffer</code> under
+the hood, modern browsers require strict security headers to mitigate
+side-channel attacks like Spectre. Your server must serve the HTML
+document with the following HTTP headers:</p>
+<pre class="http"><code>Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp</code></pre>
+<p>Without these headers, creating a shared
+<code>WebAssembly.Memory</code> instance will fail.</p>
+<h2 id="step-2-creating-shared-webassembly-memory">Step 2: Creating
+Shared WebAssembly Memory</h2>
+<p>To create a shared memory space, instantiate
+<code>WebAssembly.Memory</code> with the <code>shared: true</code>
+property. When <code>shared</code> is set to <code>true</code>, you must
+also specify a <code>maximum</code> page size (each WebAssembly page is
+64 KB).</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Create a shared memory object</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">// initial: 10 pages (640 KB), maximum: 100 pages (6.4 MB)</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> sharedMemory <span class="op">=</span> <span class="kw">new</span> WebAssembly<span class="op">.</span><span class="fu">Memory</span>({</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">initial</span><span class="op">:</span> <span class="dv">10</span><span class="op">,</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">maximum</span><span class="op">:</span> <span class="dv">100</span><span class="op">,</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">shared</span><span class="op">:</span> <span class="kw">true</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<h2 id="step-3-passing-the-memory-to-web-workers">Step 3: Passing the
+Memory to Web Workers</h2>
+<p>Once the memory object is created, you can send it to your Web
+Workers using <code>postMessage</code>. Unlike standard objects, the
+memory reference is passed directly, allowing workers to access the
+exact same buffer.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Initialize Web Workers</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> worker1 <span class="op">=</span> <span class="kw">new</span> <span class="bu">Worker</span>(<span class="st">&#39;worker.js&#39;</span>)<span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> worker2 <span class="op">=</span> <span class="kw">new</span> <span class="bu">Worker</span>(<span class="st">&#39;worker.js&#39;</span>)<span class="op">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Send the shared memory instance to both workers</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>worker1<span class="op">.</span><span class="fu">postMessage</span>({ <span class="dt">memory</span><span class="op">:</span> sharedMemory })<span class="op">;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>worker2<span class="op">.</span><span class="fu">postMessage</span>({ <span class="dt">memory</span><span class="op">:</span> sharedMemory })<span class="op">;</span></span></code></pre></div>
+<h2 id="step-4-accessing-and-modifying-memory-in-the-worker">Step 4:
+Accessing and Modifying Memory in the Worker</h2>
+<p>Inside the worker file (<code>worker.js</code>), listen for the
+message containing the memory object. You can access the raw buffer
+using <code>memory.buffer</code> and wrap it in a JavaScript TypedArray
+(such as <code>Uint8Array</code> or <code>Int32Array</code>) to read and
+write data.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// worker.js</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>self<span class="op">.</span><span class="at">onmessage</span> <span class="op">=</span> <span class="kw">function</span> (<span class="bu">event</span>) {</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> { memory } <span class="op">=</span> <span class="bu">event</span><span class="op">.</span><span class="at">data</span><span class="op">;</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Create a view to read/write 8-bit unsigned integers</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> view <span class="op">=</span> <span class="kw">new</span> <span class="bu">Uint8Array</span>(memory<span class="op">.</span><span class="at">buffer</span>)<span class="op">;</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Write data to index 0</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  view[<span class="dv">0</span>] <span class="op">=</span> <span class="dv">42</span><span class="op">;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Worker read value: </span><span class="sc">${</span>view[<span class="dv">0</span>]<span class="sc">}</span><span class="vs">`</span>)<span class="op">;</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
+<p>Because both workers and the main thread point to the same
+<code>memory.buffer</code>, any modification made by one thread is
+instantly visible to all other threads.</p>
+<h2 id="managing-race-conditions-with-atomics">Managing Race Conditions
+with Atomics</h2>
+<p>When multiple threads access the same memory location simultaneously,
+race conditions can occur. To prevent data corruption, use the
+JavaScript <code>Atomics</code> API when reading or writing to the
+shared buffer.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// worker.js</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>self<span class="op">.</span><span class="at">onmessage</span> <span class="op">=</span> <span class="kw">function</span> (<span class="bu">event</span>) {</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> { memory } <span class="op">=</span> <span class="bu">event</span><span class="op">.</span><span class="at">data</span><span class="op">;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> view <span class="op">=</span> <span class="kw">new</span> <span class="bu">Int32Array</span>(memory<span class="op">.</span><span class="at">buffer</span>)<span class="op">;</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Safely add 5 to index 0 using Atomics</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="bu">Atomics</span><span class="op">.</span><span class="fu">add</span>(view<span class="op">,</span> <span class="dv">0</span><span class="op">,</span> <span class="dv">5</span>)<span class="op">;</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Safely load the value</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> value <span class="op">=</span> <span class="bu">Atomics</span><span class="op">.</span><span class="fu">load</span>(view<span class="op">,</span> <span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="vs">`Safe value: </span><span class="sc">${</span>value<span class="sc">}</span><span class="vs">`</span>)<span class="op">;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

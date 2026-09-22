@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How WebAssembly Handles Memory and Garbage Collection - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) utilizes a secure, low-level memory model that has recently evolved to support high-level programming languages more efficiently. Historically, WebAssembly relied solely on a contiguous, flat range of bytes called linear memory, which">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-web-assembly-handles-memory-and-garbage-collection">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How WebAssembly Handles Memory and Garbage Collection - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-web-assembly-handles-memory-and-garbage-collection" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) utilizes a secure, low-level memory model that has recently evolved to support high-level programming languages more efficiently. Historically, WebAssembly relied solely on a contiguous, flat range of bytes called linear memory, which" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-webassembly-handles-memory-and-garbage-collection">How
+WebAssembly Handles Memory and Garbage Collection</h1>
+<p>WebAssembly (Wasm) utilizes a secure, low-level memory model that has
+recently evolved to support high-level programming languages more
+efficiently. Historically, WebAssembly relied solely on a contiguous,
+flat range of bytes called linear memory, which required manual
+management. However, the introduction of the WebAssembly Garbage
+Collection (WasmGC) extension has changed this landscape, allowing Wasm
+to directly interface with the host environment’s garbage collector.
+This article explores how Wasm manages linear memory, how it handles
+manual allocation, and how WasmGC enables automatic memory management
+for languages like Kotlin, Dart, and Java.</p>
+<h2 id="webassembly-linear-memory">WebAssembly Linear Memory</h2>
+<p>At its core, WebAssembly operates using a sandboxed memory model
+known as <strong>linear memory</strong>. Linear memory is represented as
+a contiguous array of raw bytes that can be dynamically expanded in 64
+KiB increments (called pages).</p>
+<p>When compiling low-level languages like C, C++, or Rust to
+WebAssembly, the compiled code treats this linear memory as its physical
+RAM. Security is a primary benefit of this design: a Wasm module can
+only access its own allocated linear memory space. It cannot access
+memory addresses outside of this sandbox, preventing common
+vulnerabilities like buffer overflows from affecting the host
+system.</p>
+<h2 id="manual-memory-management-in-wasm">Manual Memory Management in
+Wasm</h2>
+<p>Because linear memory is just a raw byte array, WebAssembly itself
+has no built-in understanding of complex data structures like objects,
+trees, or graphs. For languages that do not have garbage collection
+(e.g., C/C++ and Rust), memory management must be handled manually
+within the compiled module:</p>
+<ol type="1">
+<li><strong>Allocators:</strong> The compiled Wasm binary includes a
+software allocator (such as <code>dlmalloc</code> or
+<code>wee_alloc</code>) packaged directly inside the module.</li>
+<li><strong>Allocation &amp; Deallocation:</strong> When the application
+runs, the allocator manages the linear memory by assigning specific byte
+offsets to variables and structures. Developers use standard manual
+allocation patterns (like <code>malloc</code> and <code>free</code> in
+C, or Rust's ownership system) to manage the lifecycle of these
+bytes.</li>
+<li><strong>Host Interaction:</strong> If the host environment (such as
+a web browser running JavaScript) needs to access data within Wasm's
+linear memory, it must read or write directly to the buffer using typed
+arrays.</li>
+</ol>
+<h2 id="the-challenge-of-managed-languages">The Challenge of Managed
+Languages</h2>
+<p>For high-level, garbage-collected languages like Java, C#, Go, and
+Dart, compiling to traditional WebAssembly linear memory presented
+significant challenges.</p>
+<p>To run these languages, developers had to compile the language’s
+entire runtime—including its custom garbage collector—into the Wasm
+binary. This resulted in bloated file sizes, slow load times, and poor
+performance, as the internal GC had to run on top of Wasm's linear
+memory without understanding the host browser's optimization cycles.</p>
+<h2 id="introducing-webassembly-garbage-collection-wasmgc">Introducing
+WebAssembly Garbage Collection (WasmGC)</h2>
+<p>To solve the limitations of managed languages, the WebAssembly
+community developed <strong>WasmGC</strong>, which is now a standard
+feature in major web browsers.</p>
+<p>WasmGC integrates garbage collection directly into the WebAssembly
+runtime by defining new, high-level types (such as structs and arrays)
+directly in the Wasm bytecode. Instead of managing raw bytes in linear
+memory, WasmGC allows compilers to generate instructions that allocate
+garbage-collected objects.</p>
+<h3 id="how-wasmgc-works">How WasmGC Works</h3>
+<p>WasmGC bridges the gap between WebAssembly and the host virtual
+machine (such as the browser's JavaScript engine) through the following
+mechanisms:</p>
+<ul>
+<li><strong>Host-VM Integration:</strong> Instead of shipping a custom
+garbage collector inside the Wasm file, WasmGC leverages the highly
+optimized garbage collector already built into the host engine (e.g., V8
+in Chrome, SpiderMonkey in Firefox).</li>
+<li><strong>Reference Types:</strong> WasmGC introduces managed
+reference types. Wasm can hold references to host-managed objects,
+allowing the host’s garbage collector to track references, detect
+cycles, and safely reclaim memory when objects are no longer
+needed.</li>
+<li><strong>Performance Benefits:</strong> By offloading GC to the host,
+Wasm binaries for managed languages are significantly smaller, download
+faster, and benefit from the host engine's advanced garbage collection
+optimizations (like generational collection and concurrent
+sweeping).</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

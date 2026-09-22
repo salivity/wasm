@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Running WebAssembly on Microcontrollers Using Wasm3 - wasm</title>
+    <meta name="description" content="This article explores the role of Wasm3, a highly optimized WebAssembly (Wasm) interpreter designed specifically for resource-constrained hardware. It explains how Wasm3 enables developers to run safe, portable, and high-performance WebAssembly code on m">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/running-web-assembly-on-microcontrollers-using-wasm-3">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Running WebAssembly on Microcontrollers Using Wasm3 - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/running-web-assembly-on-microcontrollers-using-wasm-3" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explores the role of Wasm3, a highly optimized WebAssembly (Wasm) interpreter designed specifically for resource-constrained hardware. It explains how Wasm3 enables developers to run safe, portable, and high-performance WebAssembly code on m" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="running-webassembly-on-microcontrollers-using-wasm3">Running
+WebAssembly on Microcontrollers Using Wasm3</h1>
+<p>This article explores the role of Wasm3, a highly optimized
+WebAssembly (Wasm) interpreter designed specifically for
+resource-constrained hardware. It explains how Wasm3 enables developers
+to run safe, portable, and high-performance WebAssembly code on
+microcontrollers and embedded devices, bypassing the heavy hardware
+requirements of traditional execution engines.</p>
+<h2 id="why-run-webassembly-on-embedded-devices">Why Run WebAssembly on
+Embedded Devices?</h2>
+<p>Microcontrollers and embedded systems traditionally rely on native C
+or C++ code compiled directly for specific hardware architectures. While
+efficient, this approach lacks memory safety, sandboxing, and platform
+portability.</p>
+<p>WebAssembly solves these challenges by providing a secure,
+platform-independent binary format. However, standard Wasm runtimes are
+designed for powerful desktop or server environments. Wasm3 bridges this
+gap by acting as an ultra-lightweight interpreter that fits within the
+strict hardware limitations of microcontrollers.</p>
+<h2 id="the-core-role-of-wasm3">The Core Role of Wasm3</h2>
+<p>Wasm3 is specifically engineered to execute WebAssembly bytecode on
+systems with extremely limited CPU and memory resources. It plays
+several critical roles in the embedded ecosystem:</p>
+<h3 id="1-minimal-memory-footprint">1. Minimal Memory Footprint</h3>
+<p>Traditional Just-In-Time (JIT) compilation runtimes require megabytes
+of RAM to compile and execute code. Wasm3 is an interpreter, meaning it
+executes the bytecode directly without a compilation step. It can run on
+devices with less than 64 KB of RAM and requires only a few kilobytes of
+flash memory for the engine itself, making it compatible with chips like
+the ESP32, STM32, Arduino, and nRF52.</p>
+<h3 id="2-high-performance-interpretation">2. High-Performance
+Interpretation</h3>
+<p>While interpreters are generally slower than JIT compilers, Wasm3
+utilizes a unique execution model called "M3" (a fast,
+tail-call-optimized interpreter). This design minimizes interpreter
+overhead, making Wasm3 the fastest WebAssembly interpreter available. It
+delivers execution speeds sufficient for many real-time embedded
+applications.</p>
+<h3 id="3-hardware-and-architecture-agnostic">3. Hardware and
+Architecture Agnostic</h3>
+<p>Because Wasm3 compiles as standard C99, it can run on virtually any
+processor architecture. Developers can run the exact same WebAssembly
+binary on ARM Cortex-M, ESP32 (Xtensa), RISC-V, x86, or MIPS
+architectures without recompiling the application code for the specific
+chip.</p>
+<h3 id="4-sandboxing-and-security">4. Sandboxing and Security</h3>
+<p>Microcontroller firmware is vulnerable to system-wide crashes caused
+by memory leaks or pointer errors. Wasm3 runs code inside a strictly
+sandboxed virtual machine. If the WebAssembly application encounters an
+error (like an out-of-bounds memory access), the Wasm3 engine traps the
+error safely, preventing the host microcontroller's primary operating
+system or firmware from crashing.</p>
+<h3 id="5-seamless-over-the-air-ota-updates">5. Seamless Over-the-Air
+(OTA) Updates</h3>
+<p>Updating firmware on deployed IoT devices is often risky and
+bandwidth-intensive. With Wasm3, developers can decouple the core
+operating system from the application logic. Instead of flashing a
+massive system binary, they can push tiny, pre-compiled WebAssembly
+modules (often only a few kilobytes in size) over-the-air to update
+specific device behaviors instantly.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

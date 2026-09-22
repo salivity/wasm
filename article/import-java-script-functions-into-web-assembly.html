@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import JavaScript Functions into WebAssembly - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) modules are designed to run alongside JavaScript, and you can indeed import JavaScript functions directly into a Wasm module. This article explains how this integration works, the step-by-step process of passing JavaScript functions du">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/import-java-script-functions-into-web-assembly">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Import JavaScript Functions into WebAssembly - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/import-java-script-functions-into-web-assembly" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) modules are designed to run alongside JavaScript, and you can indeed import JavaScript functions directly into a Wasm module. This article explains how this integration works, the step-by-step process of passing JavaScript functions du" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="import-javascript-functions-into-webassembly">Import JavaScript
+Functions into WebAssembly</h1>
+<p>WebAssembly (Wasm) modules are designed to run alongside JavaScript,
+and you can indeed import JavaScript functions directly into a Wasm
+module. This article explains how this integration works, the
+step-by-step process of passing JavaScript functions during module
+instantiation, and how to call them from within your WebAssembly
+code.</p>
+<h2 id="how-the-import-mechanism-works">How the Import Mechanism
+Works</h2>
+<p>WebAssembly cannot access the host environment (like the browser DOM
+or Node.js APIs) directly. Instead, it relies on the host to provide
+these capabilities. You can import JavaScript functions into a
+WebAssembly module by passing an <code>importObject</code> during the
+instantiation of the Wasm module.</p>
+<p>When you instantiate a Wasm module using
+<code>WebAssembly.instantiate()</code> or
+<code>WebAssembly.instantiateStreaming()</code>, you provide this
+<code>importObject</code> as the second argument. The Wasm module can
+then call these imported functions just like its own internal
+functions.</p>
+<h2 id="step-by-step-implementation">Step-by-Step Implementation</h2>
+<p>To import a JavaScript function into WebAssembly, you must define the
+function in JavaScript, declare it in your WebAssembly code, and map
+them together during instantiation.</p>
+<h3 id="1-declare-the-import-in-webassembly">1. Declare the Import in
+WebAssembly</h3>
+<p>In your WebAssembly code (written in WebAssembly Text Format, or
+WAT), you declare the external function using the <code>import</code>
+keyword. You must specify the namespace, the function name, and the
+function's signature (parameters and return types).</p>
+<pre class="wat"><code>(module
+  ;; Import &#39;js_log_number&#39; from the &#39;imports&#39; namespace
+  (import &quot;imports&quot; &quot;js_log_number&quot; (func $log_num (param i32)))
+  
+  (func (export &quot;call_js&quot;)
+    ;; Call the imported JavaScript function with the argument 42
+    i32.const 42
+    call $log_num
+  )
+)</code></pre>
+<h3 id="2-define-the-function-in-javascript">2. Define the Function in
+JavaScript</h3>
+<p>In your JavaScript file, create the function you want WebAssembly to
+execute. Structure this function inside an object that matches the
+namespaces declared in your Wasm code.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Define the JavaScript function</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">logNumberFromWasm</span>(number) {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="st">&quot;Value from WebAssembly:&quot;</span><span class="op">,</span> number)<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">// Create the import object matching the Wasm declaration</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> importObject <span class="op">=</span> {</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">imports</span><span class="op">:</span> {</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">js_log_number</span><span class="op">:</span> logNumberFromWasm</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>}<span class="op">;</span></span></code></pre></div>
+<h3 id="3-instantiate-the-module-with-the-imports">3. Instantiate the
+Module with the Imports</h3>
+<p>Pass the <code>importObject</code> to the WebAssembly instantiation
+function. Once loaded, you can run the exported Wasm function, which in
+turn executes the imported JavaScript function.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode javascript"><code class="sourceCode javascript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>WebAssembly<span class="op">.</span><span class="fu">instantiateStreaming</span>(<span class="fu">fetch</span>(<span class="st">&#39;module.wasm&#39;</span>)<span class="op">,</span> importObject)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">.</span><span class="fu">then</span>(obj <span class="kw">=&gt;</span> {</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Call the exported Wasm function, which triggers the JS function</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    obj<span class="op">.</span><span class="at">instance</span><span class="op">.</span><span class="at">exports</span><span class="op">.</span><span class="fu">call_js</span>()<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span></code></pre></div>
+<h2 id="data-type-limitations">Data Type Limitations</h2>
+<p>When importing JavaScript functions into WebAssembly, you must adhere
+to WebAssembly's strict type system. WebAssembly only natively
+understands numeric types:</p>
+<ul>
+<li>Integers (<code>i32</code>, <code>i64</code>)</li>
+<li>Floating-point numbers (<code>f32</code>, <code>f64</code>)</li>
+</ul>
+<p>If you need to pass complex data types like strings, arrays, or
+objects from WebAssembly to an imported JavaScript function, you cannot
+pass them directly. Instead, you must write the data to the WebAssembly
+module's shared memory (<code>WebAssembly.Memory</code>) and pass the
+memory offset (pointer) and length as integers to the JavaScript
+function. JavaScript can then read the data directly from the shared
+memory buffer.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

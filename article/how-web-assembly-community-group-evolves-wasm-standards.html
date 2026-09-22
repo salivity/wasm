@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How WebAssembly Community Group Evolves Wasm Standards - wasm</title>
+    <meta name="description" content="The WebAssembly Community Group (CG) is the primary open forum responsible for designing, discussing, and advancing the WebAssembly (Wasm) roadmap. This article provides a clear overview of how the CG operates, its key responsibilities in shaping the Was">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-web-assembly-community-group-evolves-wasm-standards">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How WebAssembly Community Group Evolves Wasm Standards - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-web-assembly-community-group-evolves-wasm-standards" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="The WebAssembly Community Group (CG) is the primary open forum responsible for designing, discussing, and advancing the WebAssembly (Wasm) roadmap. This article provides a clear overview of how the CG operates, its key responsibilities in shaping the Was" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-webassembly-community-group-evolves-wasm-standards">How
+WebAssembly Community Group Evolves Wasm Standards</h1>
+<p>The WebAssembly Community Group (CG) is the primary open forum
+responsible for designing, discussing, and advancing the WebAssembly
+(Wasm) roadmap. This article provides a clear overview of how the CG
+operates, its key responsibilities in shaping the Wasm specification,
+its multi-stage proposal process, and how it collaborates with the
+WebAssembly Working Group (WG) to deliver high-performance, secure web
+standards.</p>
+<h2 id="what-is-the-webassembly-community-group">What is the WebAssembly
+Community Group?</h2>
+<p>The WebAssembly Community Group is an open, collaborative
+organization operating under the World Wide Web Consortium (W3C). Unlike
+traditional standards bodies that are highly restricted, the CG is
+designed to be inclusive. It brings together browser vendors (such as
+Google, Mozilla, Apple, and Microsoft), hardware manufacturers,
+toolchain developers, and independent engineers to collaboratively
+design the future of WebAssembly.</p>
+<p>The CG acts as the incubation hub where new ideas are proposed,
+debated, and prototyped before they become official web standards.</p>
+<h2 id="key-responsibilities-of-the-community-group">Key
+Responsibilities of the Community Group</h2>
+<p>The CG plays several critical roles in the lifecycle of
+WebAssembly:</p>
+<ul>
+<li><strong>Incubation of New Features:</strong> The CG is where all new
+features—such as Garbage Collection (WasmGC), Multi-threading, and SIMD
+(Single Instruction, Multiple Data)—begin their journey.</li>
+<li><strong>Fostering Industry Consensus:</strong> Because WebAssembly
+must run consistently across different operating systems, browsers, and
+devices, the CG works to ensure that all major stakeholders agree on
+technical designs.</li>
+<li><strong>Developing Reference Implementations:</strong> Members of
+the CG write prototype implementations in interpreters, compilers, and
+browsers to test the viability of proposed features.</li>
+<li><strong>Maintaining the Test Suite:</strong> The CG helps maintain
+the official WebAssembly test suite, ensuring that different engines
+implement the specification consistently.</li>
+</ul>
+<h2 id="the-webassembly-proposal-process">The WebAssembly Proposal
+Process</h2>
+<p>To manage the evolution of Wasm without introducing breaking changes
+or security vulnerabilities, the CG utilizes a structured, five-stage
+proposal process:</p>
+<ul>
+<li><strong>Phase 0 (Pre-Proposal):</strong> An idea is proposed. It
+requires a champion within the CG and an explanation of the problem it
+solves.</li>
+<li><strong>Phase 1 (Proposal):</strong> The feature is formally
+proposed. The CG discusses the high-level design, use cases, and
+potential integration challenges.</li>
+<li><strong>Phase 2 (Proposed Spec Text):</strong> The champion provides
+a draft of the formal specification language and a prototype
+implementation.</li>
+<li><strong>Phase 3 (Implementation and Testing):</strong> The
+specification is refined. At least two independent implementations
+(usually in major browser engines) and a complete test suite are
+required to pass this stage.</li>
+<li><strong>Phase 4 (Standardization):</strong> The proposal is
+complete. It is handed over to the WebAssembly Working Group to be
+officially integrated into the W3C WebAssembly standard.</li>
+</ul>
+<h2 id="community-group-cg-vs-working-group-wg">Community Group (CG) vs.
+Working Group (WG)</h2>
+<p>While both groups work on WebAssembly under the W3C umbrella, they
+have distinct roles:</p>
+<ul>
+<li><strong>The Community Group (CG)</strong> is open to anyone and
+focuses on the creative, experimental, and technical development of new
+features. It is where the actual coding, prototyping, and discussion
+happen.</li>
+<li><strong>The Working Group (WG)</strong> is a smaller, formal body
+composed of official W3C members. The WG reviews the finalized proposals
+delivered by the CG and formally ratifies them into official Web
+Standards.</li>
+</ul>
+<p>Through this dual-group structure, the WebAssembly Community Group
+ensures that Wasm remains a community-driven, highly optimized, and
+universally compatible technology.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

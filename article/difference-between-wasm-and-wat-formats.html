@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Difference Between WASM and WAT Formats - wasm</title>
+    <meta name="description" content="This article explains the fundamental differences between the WebAssembly binary format (.wasm) and the WebAssembly text format (.wat). Although both represent the exact same program structure, they are designed for different audiences—one for machines">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/difference-between-wasm-and-wat-formats">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Difference Between WASM and WAT Formats - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/difference-between-wasm-and-wat-formats" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="This article explains the fundamental differences between the WebAssembly binary format (.wasm) and the WebAssembly text format (.wat). Although both represent the exact same program structure, they are designed for different audiences—one for machines" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="difference-between-wasm-and-wat-formats">Difference Between WASM
+and WAT Formats</h1>
+<p>This article explains the fundamental differences between the
+WebAssembly binary format (<code>.wasm</code>) and the WebAssembly text
+format (<code>.wat</code>). Although both represent the exact same
+program structure, they are designed for different audiences—one for
+machines and the other for humans. We will explore their unique
+characteristics, use cases, and how developers translate between the two
+formats.</p>
+<h2 id="what-is-wasm-wasm">What is WASM (.wasm)?</h2>
+<p>The <code>.wasm</code> file extension represents the
+<strong>WebAssembly binary format</strong>. This is the compiled
+bytecode designed for fast distribution, parsing, and execution by
+WebAssembly virtual machines (such as those in web browsers or
+server-side runtimes like Node.js and Wasmtime).</p>
+<ul>
+<li><strong>Machine-Readable:</strong> It consists of binary encoded
+data that is virtually impossible for humans to read or write
+directly.</li>
+<li><strong>Optimized for Performance:</strong> The binary format is
+highly compressed, resulting in small file sizes that load quickly over
+networks.</li>
+<li><strong>Compilation Target:</strong> Developers rarely write
+<code>.wasm</code> directly. Instead, they write code in high-level
+languages like C, C++, Rust, or Go, and use compilers to output the
+<code>.wasm</code> binary.</li>
+</ul>
+<h2 id="what-is-wat-wat">What is WAT (.wat)?</h2>
+<p>The <code>.wat</code> file extension represents the
+<strong>WebAssembly text format</strong>. This format is a textual
+representation of the binary format, designed to be read, written, and
+debugged by human developers.</p>
+<ul>
+<li><strong>Human-Readable:</strong> It uses S-expressions (a nested
+list syntax similar to Lisp) to represent the abstract syntax tree of
+the WebAssembly code.</li>
+<li><strong>Instruction-Based:</strong> It exposes low-level
+instructions, stack operations, and memory allocations in a clear,
+text-based syntax.</li>
+<li><strong>Use Cases:</strong> Developers use <code>.wat</code> to
+understand how high-level code compiles down to WebAssembly, write
+optimized low-level routines manually, or debug WebAssembly modules
+during development.</li>
+</ul>
+<h2 id="key-differences">Key Differences</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Feature</th>
+<th style="text-align: left;">WASM (<code>.wasm</code>)</th>
+<th style="text-align: left;">WAT (<code>.wat</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Format</strong></td>
+<td style="text-align: left;">Binary (Bytecode)</td>
+<td style="text-align: left;">Plain Text (S-expressions)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Primary Audience</strong></td>
+<td style="text-align: left;">WebAssembly Runtimes / Browsers</td>
+<td style="text-align: left;">Developers / Humans</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>File Size</strong></td>
+<td style="text-align: left;">Extremely small
+(optimized/compressed)</td>
+<td style="text-align: left;">Larger (uncompressed text)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Editability</strong></td>
+<td style="text-align: left;">Cannot be edited directly</td>
+<td style="text-align: left;">Easily editable in any text editor</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Execution</strong></td>
+<td style="text-align: left;">Executed directly by the host
+environment</td>
+<td style="text-align: left;">Must be compiled to <code>.wasm</code> to
+run</td>
+</tr>
+</tbody>
+</table>
+<h2 id="isomorphism-and-conversion">Isomorphism and Conversion</h2>
+<p>One of the most powerful aspects of WebAssembly is that
+<code>.wasm</code> and <code>.wat</code> are 100% isomorphic. This means
+you can convert a <code>.wasm</code> binary into a <code>.wat</code>
+text file and back again without losing any functional logic or
+structural information.</p>
+<p>Developers use the <strong>WebAssembly Binary Toolkit (WABT)</strong>
+to perform these conversions:</p>
+<ul>
+<li><strong><code>wat2wasm</code></strong>: Compiles a human-readable
+<code>.wat</code> text file into a deployable <code>.wasm</code>
+binary.</li>
+<li><strong><code>wasm2wat</code></strong>: Decompiles a
+<code>.wasm</code> binary into readable <code>.wat</code> text, which is
+highly useful for reverse engineering and debugging.</li>
+</ul>
+<p>Ultimately, while <code>.wat</code> is the tool for developer
+comprehension and debugging, <code>.wasm</code> is the final,
+production-ready payload optimized for machine execution.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

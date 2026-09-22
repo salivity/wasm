@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How WASI Standardizes WebAssembly OS Interactions - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) was originally designed to run securely inside web browsers, isolated from the host operating system. To run WebAssembly outside the browser—on servers, edge devices, and desktops—it requires a safe way to interact with system reso">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-wasi-standardizes-web-assembly-os-interactions">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How WASI Standardizes WebAssembly OS Interactions - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-wasi-standardizes-web-assembly-os-interactions" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) was originally designed to run securely inside web browsers, isolated from the host operating system. To run WebAssembly outside the browser—on servers, edge devices, and desktops—it requires a safe way to interact with system reso" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-wasi-standardizes-webassembly-os-interactions">How WASI
+Standardizes WebAssembly OS Interactions</h1>
+<p>WebAssembly (Wasm) was originally designed to run securely inside web
+browsers, isolated from the host operating system. To run WebAssembly
+outside the browser—on servers, edge devices, and desktops—it requires a
+safe way to interact with system resources like files, folders, and
+networks. This article explains how the WebAssembly System Interface
+(WASI) standardizes these operating system interactions, enabling highly
+portable and secure non-browser Wasm applications.</p>
+<h2 id="the-challenge-of-non-browser-webassembly">The Challenge of
+Non-Browser WebAssembly</h2>
+<p>Traditionally, software applications interact with the host operating
+system using system calls (syscalls). Because different operating
+systems (such as Windows, Linux, and macOS) have different system calls,
+developers must compile their code specifically for each target
+platform.</p>
+<p>WebAssembly aims for write-once, run-anywhere portability. If a Wasm
+binary relied directly on Linux-specific syscalls, it would fail to run
+on Windows. To maintain portability, WebAssembly needed a standardized,
+platform-independent system interface. WASI fills this gap by acting as
+a universal abstraction layer between Wasm applications and the host
+operating system.</p>
+<h2 id="how-wasi-standardizes-os-access">How WASI Standardizes OS
+Access</h2>
+<p>WASI provides a standardized set of APIs that Wasm programs use to
+request operating system services. Instead of targeting a specific OS,
+developers compile their source code (written in languages like Rust,
+C++, or Go) to target WASI.</p>
+<h3 id="1-abstracting-system-calls">1. Abstracting System Calls</h3>
+<p>When a program is compiled to the WASI target, its system calls are
+mapped to WASI’s standardized functions. For example, instead of using a
+Linux-specific <code>open</code> or Windows-specific
+<code>CreateFile</code> API, the Wasm binary calls the WASI standard
+function <code>path_open</code>.</p>
+<h3 id="2-the-role-of-the-webassembly-runtime">2. The Role of the
+WebAssembly Runtime</h3>
+<p>To run a WASI-compliant Wasm binary, you need a WebAssembly runtime
+(such as Wasmtime, Wasmer, or WasmEdge) installed on the host
+machine.</p>
+<p>The runtime acts as the translator. When the Wasm application calls a
+WASI function like <code>path_open</code>, the runtime intercepts this
+call and translates it into the appropriate native system call for the
+host operating system. Because the runtime handles the platform-specific
+translation, the same Wasm binary can run unmodified on any operating
+system where a compatible runtime exists.</p>
+<h2 id="capability-based-security">Capability-Based Security</h2>
+<p>Standard operating systems rely on user-based security. If a user
+runs a program, that program inherits all of the user's permissions,
+meaning a malicious program could theoretically access or delete any
+file the user owns.</p>
+<p>WASI implements a strict <strong>capability-based security
+model</strong>. By default, a Wasm application running via WASI has no
+access to the outside world—no file system access, no network access,
+and no environment variables.</p>
+<p>To grant access, the host runtime must explicitly pass "capabilities"
+to the Wasm module when launching it. For example, if a program needs to
+write to a specific folder, the runtime must pre-open that folder and
+pass the file descriptor to the program. The Wasm program cannot
+traverse up the directory tree or access any files outside of that
+explicitly granted folder, ensuring complete sandboxing.</p>
+<h2 id="wasi-evolution-from-preview-1-to-wasi-02-preview-2">WASI
+Evolution: From Preview 1 to WASI 0.2 (Preview 2)</h2>
+<p>WASI has evolved from its initial prototype to a production-ready
+standard built on the WebAssembly Component Model:</p>
+<ul>
+<li><strong>WASI Preview 1:</strong> The original version, heavily
+modeled after POSIX standards. While effective, it was monolithic and
+lacked modularity.</li>
+<li><strong>WASI 0.2 (Preview 2):</strong> Built on the WebAssembly
+Component Model, this version introduces modular "worlds" and
+"interfaces" written in WebAssembly Interface Type (WIT) files. It
+categorizes system access into distinct APIs, such as
+<code>wasi-cli</code> (for command-line tools), <code>wasi-http</code>
+(for sending and receiving HTTP requests), and
+<code>wasi-filesystem</code> (for file system access).</li>
+</ul>
+<p>By decoupling the APIs into distinct modules, WASI allows runtimes to
+implement only the features they need. For example, an IoT sensor
+runtime might implement basic input/output APIs but omit HTTP support to
+save memory.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

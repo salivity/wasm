@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Manage WebAssembly Dependencies and Libraries - wasm</title>
+    <meta name="description" content="Building WebAssembly (Wasm) applications often requires integrating external libraries and managing software dependencies across different programming languages. This article provides a straightforward guide on how to handle dependencies in a Wasm projec">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/how-to-manage-web-assembly-dependencies-and-libraries">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="How to Manage WebAssembly Dependencies and Libraries - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/how-to-manage-web-assembly-dependencies-and-libraries" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="Building WebAssembly (Wasm) applications often requires integrating external libraries and managing software dependencies across different programming languages. This article provides a straightforward guide on how to handle dependencies in a Wasm projec" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="how-to-manage-webassembly-dependencies-and-libraries">How to
+Manage WebAssembly Dependencies and Libraries</h1>
+<p>Building WebAssembly (Wasm) applications often requires integrating
+external libraries and managing software dependencies across different
+programming languages. This article provides a straightforward guide on
+how to handle dependencies in a Wasm project, focusing on toolchains for
+Rust, C/C++, and Go, as well as managing the resulting Wasm modules in
+JavaScript environments and non-browser runtimes.</p>
+<h2 id="1-language-specific-dependency-management">1. Language-Specific
+Dependency Management</h2>
+<p>Because WebAssembly is a compilation target rather than a programming
+language, you manage your source-code dependencies using the package
+manager of your chosen source language.</p>
+<h3 id="rust-cargo">Rust (Cargo)</h3>
+<p>Rust has first-class support for WebAssembly. You manage dependencies
+normally using Cargo via your <code>Cargo.toml</code> file.</p>
+<ul>
+<li><strong>How it works:</strong> Cargo automatically compiles your
+dependencies into the final WebAssembly binary.</li>
+<li><strong>Wasm-Specific Libraries:</strong> Use libraries designed for
+Wasm, such as <code>wasm-bindgen</code> for JavaScript interop or
+<code>web-sys</code> for browser API bindings.</li>
+<li><strong>Limitations:</strong> Ensure your dependencies do not rely
+on native system APIs (like direct file access or raw network sockets)
+unless you are targeting WASI (WebAssembly System Interface).</li>
+</ul>
+<h3 id="c-and-c-emscripten--cmake">C and C++ (Emscripten &amp;
+CMake)</h3>
+<p>C and C++ projects typically use Emscripten to compile to
+WebAssembly.</p>
+<ul>
+<li><strong>Emscripten Ports:</strong> Emscripten includes a built-in
+library management system called "Ports." You can compile common
+libraries (like SDL2, zlib, or libpng) by passing flags to the compiler,
+such as <code>-s USE_SDL=2</code>.</li>
+<li><strong>Manual Compilation:</strong> For libraries not in Ports, you
+must compile the dependency from source using the Emscripten compiler
+(<code>emcc</code>/<code>em++</code>) to generate a static library
+(<code>.a</code> file), which you then link to your main project during
+compilation.</li>
+</ul>
+<h3 id="go-go-modules">Go (Go Modules)</h3>
+<p>Go utilizes standard Go Modules (<code>go.mod</code>) for dependency
+management.</p>
+<ul>
+<li><strong>Compilation:</strong> You target WebAssembly by setting
+environment variables during compilation:
+<code>GOOS=js GOARCH=wasm go build</code>.</li>
+<li><strong>Compatibility:</strong> Similar to Rust, dependencies that
+import the <code>syscall</code> or <code>os</code> packages may fail to
+compile unless they are specifically designed to work within a browser
+sandbox or a WASI runtime.</li>
+</ul>
+<h2 id="2-managing-wasm-modules-in-javascript-environments">2. Managing
+Wasm Modules in JavaScript Environments</h2>
+<p>Once your source code is compiled to a <code>.wasm</code> file, you
+need to manage it as a dependency within your frontend or Node.js
+application.</p>
+<h3 id="using-wasm-pack-and-npm">Using Wasm-Pack and NPM</h3>
+<p>For Rust developers, <code>wasm-pack</code> is the standard tool to
+package Wasm code into an npm package.</p>
+<ul>
+<li><strong>Packaging:</strong> Running <code>wasm-pack build</code>
+compiles your Rust code to Wasm and generates the necessary JavaScript
+glue code.</li>
+<li><strong>Distribution:</strong> You can publish this generated folder
+to npm or link it locally in your <code>package.json</code> file. Your
+frontend project can then import it like any other JavaScript
+dependency.</li>
+</ul>
+<h3 id="bundler-integration">Bundler Integration</h3>
+<p>Modern bundlers like Webpack, Vite, and Rollup can import
+<code>.wasm</code> files directly.</p>
+<ul>
+<li><strong>Vite:</strong> Allows asset importing of Wasm files, giving
+you a helper function to initialize the binary.</li>
+<li><strong>Webpack:</strong> Supports WebAssembly natively, allowing
+you to import Wasm modules asynchronously using dynamic
+<code>import()</code> statements.</li>
+</ul>
+<h2 id="3-webassembly-package-managers-for-non-browser-runtimes">3.
+WebAssembly Package Managers for Non-Browser Runtimes</h2>
+<p>If you are running WebAssembly outside of the browser (for example,
+on servers, edge networks, or embedded devices), you can use specialized
+WebAssembly package registries.</p>
+<ul>
+<li><strong>WAPM (WebAssembly Package Manager):</strong> WAPM allows you
+to publish, install, and run pre-compiled WebAssembly binaries. It is
+designed specifically for WASI-compatible modules and operates similarly
+to npm.</li>
+<li><strong>OCI Registries:</strong> Many cloud-native environments
+package Wasm modules as OCI (Open Container Initiative) artifacts,
+allowing you to distribute and manage Wasm modules using standard
+container registries like Docker Hub or GitHub Packages.</li>
+</ul></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>

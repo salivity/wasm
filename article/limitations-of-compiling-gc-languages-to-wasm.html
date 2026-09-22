@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limitations of compiling GC languages to Wasm - wasm</title>
+    <meta name="description" content="WebAssembly (Wasm) was originally designed for low-level languages with manual memory management, such as C, C++, and Rust. As developers increasingly look to compile garbage-collected (GC) languages like Go, Java, C#, and Python to Wasm, they encounter">
+    <link rel="canonical" href="https://salivity.github.io/wasm/article/limitations-of-compiling-gc-languages-to-wasm">
+    <link rel="search" type="application/opensearchdescription+xml" title="wasm" href="/wasm/opensearch.xml">
+    <link rel="icon" href="/wasm/favicon.ico">
+    <link rel="stylesheet" href="/wasm/css/style.css">
+    <link media="print" rel="stylesheet" href="/wasm/css/print.css">
+    <script src="/wasm/js/fuse.min.js"></script>
+    <script src="/wasm/js/script.js"></script>
+    <script id="MathJax-script" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-chtml.min.js" defer></script>
+    <script src="/monetize/monetize.js"></script>
+    <script src="/social/social.js"></script>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Limitations of compiling GC languages to Wasm - wasm" />
+    <meta property="og:url" content="https://salivity.github.io/wasm/article/limitations-of-compiling-gc-languages-to-wasm" />
+    <meta property="og:image" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:secure_url" content="https://salivity.github.io/wasm/images/open-graph/default.webp" />
+    <meta property="og:image:width" content="1120" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:description" content="WebAssembly (Wasm) was originally designed for low-level languages with manual memory management, such as C, C++, and Rust. As developers increasingly look to compile garbage-collected (GC) languages like Go, Java, C#, and Python to Wasm, they encounter" />
+    <link rel="manifest" href="/wasm/pwa/manifest.json" />
+</head>
+<body>
+    <header>
+        <a href="/wasm/" aria-label="Go To Home Page" title="Go To Home Page" id="logo">
+            <span>salivity.github.io/</span><span>wasm</span>
+        </a>
+        <nav>
+            <ul class="header-links">
+                <li><a href="/wasm/search" title="Search" aria-label="Go To Search Page"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"></path></svg></a></li>
+                <li><a id="theme-toggle" title="Theme" href="javascript:void(0);" aria-label="Toggle Website Theme"></a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        
+    <div class="article-layout">
+        <aside id="profile-sidebar" class="profile-column" aria-label="Author Profile"></aside>
+        <div class="article-main-column">
+            <article><h1 id="limitations-of-compiling-gc-languages-to-wasm">Limitations of
+compiling GC languages to Wasm</h1>
+<p>WebAssembly (Wasm) was originally designed for low-level languages
+with manual memory management, such as C, C++, and Rust. As developers
+increasingly look to compile garbage-collected (GC) languages like Go,
+Java, C#, and Python to Wasm, they encounter unique technical
+bottlenecks. This article outlines the primary limitations of compiling
+GC languages to WebAssembly, highlighting the challenges of binary size,
+execution overhead, browser integration, and the current state of native
+Wasm garbage collection.</p>
+<h2 id="1-bloated-binary-sizes">1. Bloated Binary Sizes</h2>
+<p>Traditionally, compiling a GC-dependent language to Wasm required
+compiling the language's entire runtime—including its garbage
+collector—into the final <code>.wasm</code> binary. This
+"ship-the-runtime" approach leads to massive file sizes. A simple "Hello
+World" application in Go or C# can easily result in multi-megabyte
+files. In web environments, large binaries delay load times, increase
+bandwidth consumption, and degrade the user experience.</p>
+<h2 id="2-memory-overhead-and-performance-drag">2. Memory Overhead and
+Performance Drag</h2>
+<p>Running a custom garbage collector inside the Wasm virtual machine
+introduces significant performance penalties. Because Wasm operates on a
+linear memory model, custom GCs must manage memory allocations manually
+within this sandbox. These collectors lack low-level access to the host
+operating system or CPU features, making them less efficient than native
+implementations. Additionally, having two garbage collectors running
+simultaneously—the browser's JavaScript GC and the Wasm runtime's GC—can
+lead to high CPU usage and memory fragmentation.</p>
+<h2 id="3-integration-barriers-with-javascript-and-the-dom">3.
+Integration Barriers with JavaScript and the DOM</h2>
+<p>Wasm modules cannot directly access the browser DOM or JavaScript
+APIs; they must communicate through import and export functions. For GC
+languages, passing complex objects back and forth requires serialized
+data or complex "glue code." Managing references across the boundary is
+highly prone to memory leaks. If a JavaScript object references a
+Wasm-managed object, or vice versa, the respective garbage collectors
+cannot easily detect cyclic dependencies, often keeping unused memory
+allocated indefinitely.</p>
+<h2 id="4-teething-pain-with-wasmgc-adoption">4. Teething Pain with
+WasmGC Adoption</h2>
+<p>To address these issues, the WebAssembly community developed
+"WasmGC," a specification that allows Wasm binaries to utilize the host
+browser’s native garbage collector. While WasmGC is now supported by
+major modern browsers (including Chrome, Firefox, and Safari), several
+limitations remain:</p>
+<ul>
+<li><strong>Toolchain Maturity:</strong> Compilers for languages like
+Kotlin, Java (via TeaVM/J2CL), and Dart are still adapting to WasmGC. It
+will take time before these toolchains generate code as optimized as
+their native counterparts.</li>
+<li><strong>Legacy Compatibility:</strong> Environments without native
+WasmGC support (such as older browsers or legacy Node.js runtimes)
+cannot run these binaries without slow polyfills.</li>
+<li><strong>Language Semantics:</strong> Many GC languages have unique
+memory models (e.g., weak references, finalizers, or pinning memory for
+interop) that do not map perfectly to the standardized WasmGC
+design.</li>
+</ul>
+<h2 id="5-limited-multi-threading-support">5. Limited Multi-Threading
+Support</h2>
+<p>Many garbage-collected languages rely heavily on multi-threading for
+background tasks and UI responsiveness. While WebAssembly supports
+threading via Web Workers and <code>SharedArrayBuffer</code>, sharing
+garbage-collected objects across threads in Wasm is still highly
+restricted. The current WasmGC specification does not fully support
+thread-safe shared GC objects, making it difficult to run highly
+concurrent GC applications at native speeds in Wasm.</p></article>
+        <div id="comments-container"></div>
+        <script>
+            const utterancesScript = document.createElement('script');
+            utterancesScript.setAttribute('src', 'https://utteranc.es/client.js');
+            utterancesScript.setAttribute('repo', 'salivity/wasm'); 
+            utterancesScript.setAttribute('issue-term', 'pathname'); 
+            utterancesScript.setAttribute('theme', localStorage.getItem('theme') === 'dark' ? 'github-dark' : 'github-light'); 
+            utterancesScript.setAttribute('crossorigin', 'anonymous');
+            utterancesScript.async = true;
+            document.getElementById('comments-container').appendChild(utterancesScript);
+        </script>
+    
+        </div>
+    </div>
+    
+    </main>
+    <footer>
+        <nav>
+            <ul class="social-links">
+            </ul>
+        </nav>
+        <nav>
+            <ul class="footer-links">
+                <li><a href="/wasm/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/wasm/terms-and-conditions">Terms and Conditions</a></li>
+            </ul>
+        </nav>
+        <div class="copyright">
+            Copyright &copy; <span id="current-year"></span>
+        </div>
+    </footer>
+</body>
+</html>
